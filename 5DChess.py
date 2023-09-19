@@ -1,3 +1,4 @@
+
 class Piece():
     def __init__(self, name, coord):
         self.name = name
@@ -13,8 +14,8 @@ def movePiece(board, piece):
     board[piece.coord[0]][piece.coord[1]][piece.coord[2]][piece.coord[3]] = ' '
     piece.coord = [piece.coord[0] + move[0], piece.coord[1] + move[1], piece.coord[2] + move[2], piece.coord[3] + move[3]]
         
-def move(board, copy, piece):
-    board[piece.coord[0]].append(copy)
+def move(board, piece):
+    board[piece.coord[0]].append(board[piece.coord[0]][piece.coord[1]])
     movePiece(board, board[piece.coord[0]][piece.coord[1] + 1][piece.coord[2]][piece.coord[3]])
 
 
@@ -28,5 +29,5 @@ board = [[[[' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']]]]
 
 print(board[0])
-move(board, board[0][0], board[0][0][4][5])
+move(board, board[0][0][4][5])
 print(board[0])
