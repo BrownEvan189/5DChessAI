@@ -1,11 +1,15 @@
 rank = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 
 class Piece():
-    def __init__(self, name):
+    def __init__(self, name, color):
         self.name = name
+        self.color = color
 
     def __str__(self):
-        return self.name
+        if(self.color == 'B'):
+            return f'\033[1;31m' + self.name + f'\033[1;37m'
+        else:
+            return f'\033[1;32m' + self.name + f'\033[1;37m'
 
     def getMovements(self):
         if self.name == "K":
@@ -37,14 +41,14 @@ def move(board, move):
 
 
 current_board = [
+    [Piece('R', 'B'),Piece('K', 'B'),Piece('B', 'B'),Piece('Q', 'B'),Piece('K', 'B'),Piece('B', 'B'),Piece('K', 'B'),Piece('R', 'B')],
+    [Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B')],
     [' ',' ',' ',' ',' ',' ',' ',' '],
     [' ',' ',' ',' ',' ',' ',' ',' '],
     [' ',' ',' ',' ',' ',' ',' ',' '],
     [' ',' ',' ',' ',' ',' ',' ',' '],
-    [' ',' ',' ',' ',' ',Piece("K"),' ',' '],
-    [' ',' ',' ',' ',' ',' ',' ',' '],
-    [' ',' ',' ',' ',' ',' ',' ',' '],
-    [' ',' ',' ',' ',' ',' ',' ',' '],
+    [Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W')],
+    [Piece('R', 'W'),Piece('K', 'W'),Piece('B', 'W'),Piece('Q', 'W'),Piece('K', 'W'),Piece('B', 'W'),Piece('K', 'W'),Piece('R', 'W')],
 ]
 
 
@@ -77,7 +81,6 @@ def view_board(univ, time):
     print('   +---+---+---+---+---+---+---+---+')
     print('     a | b | c | d | e | f | g | h')
 
-view_board(0,0)
-move(board_array, input())
-view_board(0,0)
-view_board(0,1)
+for i in range(10):
+    view_board(0, i)
+    move(board_array, input())
