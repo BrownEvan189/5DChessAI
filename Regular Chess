@@ -1,0 +1,1070 @@
+#Chess
+
+import os
+
+avalible_moves = []
+
+
+letters_list = ['A','B','C','D','E','F','G','H']
+numbers_list = ['1','2','3','4','5','6','7','8']
+
+grey = 0
+red = 1
+green = 2
+yellow = 3
+blue = 4
+purple = 5
+light_blue = 6
+white = 7
+numbers = [2,3,4,5,6,7,8,9]
+#Defines the boundaries of the board:
+edge = [
+    [0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[0,9],[0,10],[0,11],
+    [1,0],[1,1],[1,2],[1,3],[1,4],[1,5],[1,6],[1,7],[1,8],[1,9],[1,10],[1,11],
+    [2,0],[2,1],[2,10],[2,11],
+    [3,0],[3,1],[3,10],[3,11],
+    [4,0],[4,1],[4,10],[4,11],
+    [5,0],[5,1],[5,10],[5,11],
+    [6,0],[6,1],[6,10],[6,11],
+    [7,0],[7,1],[7,10],[7,11],
+    [8,0],[8,1],[8,10],[8,11],
+    [9,0],[9,1],[9,10],[9,11],
+    [10,0],[10,1],[10,2],[10,3],[10,4],[10,5],[10,6],[10,7],[10,8],[10,9],[10,10],[10,11],
+    [11,0],[11,1],[11,2],[11,3],[11,4],[11,5],[11,6],[11,7],[11,8],[11,9],[11,10],[11,11],
+    ]
+
+#This is the initial setup for the game
+
+#This function defines each piece
+def define_pieces(Color1, Color2, Board_Color):
+    global color1
+    global color2
+    global board_coloar
+
+    global morgue1
+    global morgue2
+    global morgue1_boarder
+    global morgue2_boarder
+
+    global style1
+    global style2
+    global board_style
+
+    global color2Pawn
+    global color2Rook1
+    global color2Rook2
+    global color2Knight
+    global color2Bishop
+    global color2King
+    global color2Queen
+    
+    global color1Pawn
+    global color1Rook1
+    global color1Rook2
+    global color1Knight
+    global color1Bishop
+    global color1King
+    global color1Queen
+
+    global I
+    global border
+    global letters
+    global flipped_letters
+
+    global placeholder_piece
+    global passant_pawns
+    passant_pawns = []
+
+    global s
+
+    global first_move
+    first_move = True
+
+    if Color2 != '#':
+        color2 = Color2
+        style2 = 1
+        color2Pawn = [f'\033[{style2};3{color2}mP', -1, 'pawn']
+        color2Rook1 = [f'\033[{style2};3{color2}mR', -1, 'rook', True,]
+        color2Rook2 = [f'\033[{style2};3{color2}mR', -1, 'rook', True,]
+        color2Knight = [f'\033[{style2};3{color2}mN', -1, 'knight']
+        color2Bishop = [f'\033[{style2};3{color2}mB', -1, 'bishop']
+        color2King = [f'\033[{style2};3{color2}mK', -1, 'king', True, [2, 6]]
+        color2Queen = [f'\033[{style2};3{color2}mQ', -1, 'queen']
+        
+        morgue2 = []
+        morgue2_boarder = f'\033[1;3{color2}m+--+'
+
+    if Color1 != "#":
+        color1 = Color1
+        style1 = 1
+        color1Pawn = [f'\033[{style1};3{color1}mP', 1, 'pawn']
+        color1Rook1 = [f'\033[{style1};3{color1}mR', 1, 'rook', True]
+        color1Rook2 = [f'\033[{style1};3{color1}mR', 1, 'rook', True]
+        color1Knight = [f'\033[{style1};3{color1}mN', 1, 'knight']
+        color1Bishop = [f'\033[{style1};3{color1}mB', 1, 'bishop']
+        color1King = [f'\033[{style1};3{color1}mK', 1, 'king', True, [9, 6]]
+        color1Queen = [f'\033[{style1};3{color1}mQ', 1, 'queen']
+
+        morgue1 = []
+        morgue1_boarder = f'\033[1;3{color1}m+--+'
+
+    
+    if Board_Color != '#':
+        board_color = Board_Color
+        board_style = 1
+        I = f'\033[{board_style};3{board_color}m|'
+        border = f"\033[{board_style};3{board_color}m+---+---+---+---+---+---+---+---+"
+        letters = f"\033[{board_style};3{board_color}m    A | B | C | D | E | F | G | H  "
+        flipped_letters = f"\033[{board_style};3{board_color}m    H | G | F | E | D | C | B | A  "
+
+    s = [
+    [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',color2King,' ',' ',color2Knight,color2Rook2,' ',' '],
+    [' ',' ',' ',color2Pawn,color2Pawn,' ',' ',color2Pawn,color2Pawn,color2Pawn,' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',color1Pawn,' ',' ',' ',' ',' '],
+    [' ',' ',color2Rook1,' ',' ',' ',color1Pawn,' ',' ',color1Pawn,' ',' '],
+    [' ',' ',color2Pawn,' ',' ',' ',' ',' ',color1King,' ',' ',' '],
+    [' ',' ',' ',' ',' ',color1Rook1,color1Bishop,' ',color1Pawn,' ',' ',' '],
+    [' ',' ',' ',' ',color1Knight,' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
+    ]
+    
+    color2Knight, color2Bishop, 
+
+def change_color(header, id):
+    e = 1
+    global morgue1
+    while e == 1:
+        os.system('clear')
+        print(f'\033[1;3{white}m{header}')
+        print(f'\033[1;3{white}m(1) - \033[1;3{grey}mGrey'    )
+        print(f'\033[1;3{white}m(2) - \033[1;3{red}mRed')
+        print(f'\033[1;3{white}m(3) - \033[1;3{green}mGreen')
+        print(f'\033[1;3{white}m(4) - \033[1;3{yellow}mYellow')
+        print(f'\033[1;3{white}m(5) - \033[1;3{blue}mBlue')
+        print(f'\033[1;3{white}m(6) - \033[1;3{purple}mPurple')
+        print(f'\033[1;3{white}m(7) - \033[1;3{light_blue}mLight Blue')
+        print(f'\033[1;3{white}m(8) - White')
+        print('(9) - Go Back')
+        print('-----------------------------')
+        print()
+        board()
+        print(f'\033[1;3{white}m')
+        option = input()
+        
+        if (len(option) != 1) or ((option not in numbers_list) and (option != '9')):
+            continue
+
+        if 0 < int(option) < 9:
+            if id == 1:
+                define_pieces('#', '#', int(option) - 1)
+                continue
+            if id == 2:
+                define_pieces(int(option) - 1, '#', '#')
+                continue
+            if id == 3:
+                define_pieces('#', int(option) - 1, '#')
+                continue
+            if option == '9':
+                break
+        return 1
+
+#Letter coordinates are defined as numbers
+
+def start_screen():
+    r = 0
+    while r == 0:
+        os.system('clear')
+        print(f'\033[1;3{white}m')
+        print("+--------------+")
+        print('|              |\n'
+            '|     Chess    |\n'
+            '|              |\n'
+            '+--------------+')
+        print(' (1) - Play')
+        print(' (2) - Settings')
+        print(' (3) - Exit')
+        print()
+        option = input()
+        
+        if option == '1':
+            return 0
+        elif option == '2':
+            a = 1
+            while a == 1:
+                os.system('clear')
+                print(f'\033[1;3{white}m-----Settings-----')
+                print('(1) - Change Color')
+                print('(2) - Main Menu   ')
+                print('------------------')
+                print()
+                option = input()
+                
+                if option == '1':
+                    b = 1
+                    while b == 1:
+                        os.system('clear')
+                        print(f'\033[1;3{white}m------Change Color-----')
+                        print('(1) - Board Color      ')
+                        print('(2) - Player 1\'s Color')
+                        print('(3) - Player 2\'s Color')
+                        print('(4) - Back to Settings ')
+                        print('-----------------------')
+                        print()
+
+                        option = input()
+
+                        i = 1
+                        if option == '1':
+                            change_color('---------Board Color---------',1)
+
+                        if option == '2':
+
+                            change_color('------Player 1\'s Color------',2)
+
+                        if option == '3':
+                            change_color('------Player 2\'s Color------',3)
+
+                        if option == '4':
+                            break
+
+                if option == '2':
+                    break  
+
+
+        elif option == '3':
+            return 1
+        else:
+            continue
+        
+#This function converts a string into a list
+def string_to_list(string):
+    phrase_list = []
+    for w in string.split():
+        word = []
+        for char in w:
+            word.append(char.upper())
+        phrase_list.append(word)
+    return phrase_list
+
+#Defines the pieces and sets the defualt colors
+define_pieces(purple, green, white)
+
+#These functions define the boards
+def board():
+    print(letters)
+    global morgue1
+    print(f'  {border}')
+    print(f"1 {I} {s[2][2][0]} {I} {s[2][3][0]} {I} {s[2][4][0]} {I} {s[2][5][0]} {I} {s[2][6][0]} {I} {s[2][7][0]} {I} {s[2][8][0]} {I} {s[2][9][0]} {I} ")
+    print(f'--{border}')
+    print(f"2 {I} {s[3][2][0]} {I} {s[3][3][0]} {I} {s[3][4][0]} {I} {s[3][5][0]} {I} {s[3][6][0]} {I} {s[3][7][0]} {I} {s[3][8][0]} {I} {s[3][9][0]} {I} ")
+    print(f'--{border}')
+    print(f"3 {I} {s[4][2][0]} {I} {s[4][3][0]} {I} {s[4][4][0]} {I} {s[4][5][0]} {I} {s[4][6][0]} {I} {s[4][7][0]} {I} {s[4][8][0]} {I} {s[4][9][0]} {I} ")
+    print(f'--{border}')
+    print(f"4 {I} {s[5][2][0]} {I} {s[5][3][0]} {I} {s[5][4][0]} {I} {s[5][5][0]} {I} {s[5][6][0]} {I} {s[5][7][0]} {I} {s[5][8][0]} {I} {s[5][9][0]} {I} ")
+    print(f'--{border}')
+    print(f"5 {I} {s[6][2][0]} {I} {s[6][3][0]} {I} {s[6][4][0]} {I} {s[6][5][0]} {I} {s[6][6][0]} {I} {s[6][7][0]} {I} {s[6][8][0]} {I} {s[6][9][0]} {I} ")
+    print(f'--{border}')
+    print(f"6 {I} {s[7][2][0]} {I} {s[7][3][0]} {I} {s[7][4][0]} {I} {s[7][5][0]} {I} {s[7][6][0]} {I} {s[7][7][0]} {I} {s[7][8][0]} {I} {s[7][9][0]} {I} ")
+    print(f'--{border}')
+    print(f"7 {I} {s[8][2][0]} {I} {s[8][3][0]} {I} {s[8][4][0]} {I} {s[8][5][0]} {I} {s[8][6][0]} {I} {s[8][7][0]} {I} {s[8][8][0]} {I} {s[8][9][0]} {I} ")
+    print(f'--{border}')
+    print(f"8 {I} {s[9][2][0]} {I} {s[9][3][0]} {I} {s[9][4][0]} {I} {s[9][5][0]} {I} {s[9][6][0]} {I} {s[9][7][0]} {I} {s[9][8][0]} {I} {s[9][9][0]} {I} ")
+    print(f'--{border}')
+    #print(avalible_moves)
+    #print(f'\n{I}', end=' ')
+    if len(morgue1) > 0:
+        for piece in morgue1:
+            print(f'{I} {piece[0]}', end=' ')
+        print(I)
+
+    #print(passant_pawns)
+
+def flipped_board():
+    global morgue2
+    print(flipped_letters)
+    print(f'  {border}')
+    print(f"8 {I} {s[9][9][0]} {I} {s[9][8][0]} {I} {s[9][7][0]} {I} {s[9][6][0]} {I} {s[9][5][0]} {I} {s[9][4][0]} {I} {s[9][3][0]} {I} {s[9][2][0]} {I} ")
+    print(f'--{border}')
+    print(f"7 {I} {s[8][9][0]} {I} {s[8][8][0]} {I} {s[8][7][0]} {I} {s[8][6][0]} {I} {s[8][5][0]} {I} {s[8][4][0]} {I} {s[8][3][0]} {I} {s[8][2][0]} {I} ")
+    print(f'--{border}')
+    print(f"6 {I} {s[7][9][0]} {I} {s[7][8][0]} {I} {s[7][7][0]} {I} {s[7][6][0]} {I} {s[7][5][0]} {I} {s[7][4][0]} {I} {s[7][3][0]} {I} {s[7][2][0]} {I} ")
+    print(f'--{border}')
+    print(f"5 {I} {s[6][9][0]} {I} {s[6][8][0]} {I} {s[6][7][0]} {I} {s[6][6][0]} {I} {s[6][5][0]} {I} {s[6][4][0]} {I} {s[6][3][0]} {I} {s[6][2][0]} {I} ")
+    print(f'--{border}')
+    print(f"4 {I} {s[5][9][0]} {I} {s[5][8][0]} {I} {s[5][7][0]} {I} {s[5][6][0]} {I} {s[5][5][0]} {I} {s[5][4][0]} {I} {s[5][3][0]} {I} {s[5][2][0]} {I} ")
+    print(f'--{border}')
+    print(f"3 {I} {s[4][9][0]} {I} {s[4][8][0]} {I} {s[4][7][0]} {I} {s[4][6][0]} {I} {s[4][5][0]} {I} {s[4][4][0]} {I} {s[4][3][0]} {I} {s[4][2][0]} {I} ")
+    print(f'--{border}')
+    print(f"2 {I} {s[3][9][0]} {I} {s[3][8][0]} {I} {s[3][7][0]} {I} {s[3][6][0]} {I} {s[3][5][0]} {I} {s[3][4][0]} {I} {s[3][3][0]} {I} {s[3][2][0]} {I} ")
+    print(f'--{border}')
+    print(f"1 {I} {s[2][9][0]} {I} {s[2][8][0]} {I} {s[2][7][0]} {I} {s[2][6][0]} {I} {s[2][5][0]} {I} {s[2][4][0]} {I} {s[2][3][0]} {I} {s[2][2][0]} {I} ")
+    print(f'--{border}')
+    #print(avalible_moves)
+    #print(passant_pawns)
+    if len(morgue2) > 0:
+        for piece in morgue2:
+            print(f'{I} {piece[0]}', end=' ')
+        print(I)
+
+
+#These functions translate the players input into coordinates
+def letter_to_number(move):
+
+    if move[0].upper() == 'A':
+        return 2
+    if move[0].upper() == 'B':
+        return 3
+    if move[0].upper() == 'C':
+        return 4
+    if move[0].upper() == 'D':
+        return 5
+    if move[0].upper() == 'E':
+        return 6
+    if move[0].upper() == 'F':
+        return 7
+    if move[0].upper() == 'G':
+        return 8
+    if move[0].upper() == 'H':
+        return 9
+
+def number_to_number(move):
+
+    if move[1] == '1':
+        return 2
+    if move[1] == '2':
+        return 3
+    if move[1] == '3':
+        return 4
+    if move[1] == '4':
+        return 5
+    if move[1] == '5':
+        return 6
+    if move[1] == '6':
+        return 7
+    if move[1] == '7':
+        return 8
+    if move[1] == '8':
+        return 9
+
+
+#Pawn funciton
+def pawn(move1_number, move1_letter):
+    avalible_moves = []
+        
+    if turn == 1:
+        
+        #Enables the standard 1 spot away move
+        if s[move1_number - 1][move1_letter] == ' ':
+            avalible_moves.append([move1_number - 1, move1_letter])
+            #Allows a pawn's first move to be two spots away
+            if (move1_number == 8) and (s[move1_number - 2][move1_letter] == ' '):
+                avalible_moves.append([move1_number - 2, move1_letter])
+                #Checks to see if En Passant should become active
+                if [move2_number, move2_letter] == [move1_number - 2, move1_letter]:
+                    
+                    if s[6][move2_letter + 1] == color2Pawn:
+                        passant_pawns = []
+                        passant_pawns.append(turn * -1)
+                        passant_pawns.append('passant')
+                        passant_pawns.append([move1_number - 2, move1_letter])
+                        passant_pawns.append([6, move2_letter + 1])
+                        avalible_moves.append(passant_pawns)
+
+                    if s[6][move2_letter - 1] == color2Pawn:
+                        passant_pawns = []
+                        passant_pawns.append(turn * -1)
+                        passant_pawns.append('passant')
+                        passant_pawns.append([move1_number - 2, move1_letter])
+                        passant_pawns.append([6, move2_letter - 1])
+                        avalible_moves.append(passant_pawns)
+
+        #Checks to see if a diagonal move is possible
+        if s[move1_number - 1][move1_letter - 1] != ' ' and (s[move1_number - 1][move1_letter - 1][1] == -1):
+                avalible_moves.append([move1_number - 1, move1_letter - 1])
+        if (s[move1_number - 1][move1_letter + 1] != ' ') and (s[move1_number - 1][move1_letter + 1][1] == -1):
+                avalible_moves.append([move1_number - 1, move1_letter + 1])
+        
+    if turn == -1:
+        
+        #Enables the standard 1 spot away move
+        if s[move1_number + 1][move1_letter] == ' ':
+            avalible_moves.append([move1_number + 1, move1_letter])
+            #Allows a pawn's first move to be two spots away
+            if (move1_number == 3) and (s[move1_number + 2][move1_letter] == ' '):
+                avalible_moves.append([move1_number + 2, move1_letter])
+                #Checks to see if En Passant should become active
+                if [move2_number, move2_letter] == [move1_number + 2, move1_letter]:
+
+                    if s[5][move2_letter + 1] == color1Pawn:
+                        passant_pawns = []
+                        passant_pawns.append(turn * -1)
+                        passant_pawns.append('passant')
+                        passant_pawns.append([move1_number + 2, move1_letter])
+                        passant_pawns.append([5, move2_letter + 1])
+                        avalible_moves.append(passant_pawns)
+
+                    if s[5][move2_letter - 1] == color1Pawn:
+                        passant_pawns = []
+                        passant_pawns.append(turn * -1)
+                        passant_pawns.append('passant')
+                        passant_pawns.append([move1_number + 2, move1_letter])
+                        passant_pawns.append([5, move2_letter - 1])
+                        avalible_moves.append(passant_pawns)
+
+        #Checks to see if a diagonal move is possible;
+        if s[move1_number + 1][move1_letter - 1] != ' ' and (s[move1_number + 1][move1_letter - 1][1] == 1):
+            avalible_moves.append([move1_number + 1, move1_letter - 1])
+        if s[move1_number + 1][move1_letter + 1] != ' ' and (s[move1_number + 1][move1_letter + 1][1] == 1):
+            avalible_moves.append([move1_number + 1, move1_letter + 1])
+        
+        input
+
+    
+    #Checks if the pawn is across the board
+    def promotion():
+        global move2_save
+        
+        move2_save = s[move2[0]][move2[1]]
+
+        i = 1
+        while i == 1:
+            if turn == 1:
+                print(f'\033[1;3{color1}m')
+            if turn == -1:
+                print(f'\033[1;3{color2}m')
+            print('Your pawn has been promoted! What shall it become?')
+            print('(1) - Rook')
+            print('(2) - Knight')
+            print('(3) - Bishop')
+            print('(4) - Queen')
+            option = input()
+
+            if turn == 1:
+                if option == '1':
+                    s[move2[0]][move2[1]] = color1Rook1
+                    s[move2[0]][move2[1]][3] = False
+                elif option == '2':
+                    s[move2[0]][move2[1]] = color1Knight
+                elif option == '3':
+                    s[move2[0]][move2[1]] = color1Bishop
+                elif option == '4':
+                    s[move2[0]][move2[1]] = color1Queen
+                else:
+                    continue
+                break
+            
+            if turn == -1:
+                if option == '1':
+                    s[move2[0]][move2[1]] = color2Rook1
+                    s[move2[0]][move2[1]][3] = False
+                elif option == '2':
+                    s[move2[0]][move2[1]] = color2Knight
+                elif option == '3':
+                    s[move2[0]][move2[1]] = color2Bishop
+                elif option == '4':
+                    s[move2[0]][move2[1]] = color2Queen
+                else:
+                    continue
+                break
+            break
+
+    for move in avalible_moves:
+        global moved
+        if move == [move2_number, move2_letter]:
+            if (turn == 1 and move[0] == 2) or (turn == -1 and move[0] == 9):
+                #Moves the piece
+                #move2_save = s[move2[0]][move2[1]]
+                if turn == 1 and s[move2_number][move2_letter] != ' ':
+                    morgue1.append(s[move2_number][move2_letter])
+                if turn == -1 and s[move2_number][move2_letter] != ' ':
+                    morgue2.append(s[move2_number][move2_letter])
+                s[move2[0]][move2[1]] = s[move1[0]][move1[1]]
+                s[move1[0]][move1[1]] = ' '
+                os.system('clear')
+                if turn == 1:
+                    board()
+                if turn == -1:
+                    flipped_board()
+                promotion()
+
+                s[move1[0]][move1[1]] = s[move2[0]][move2[1]]
+                #s[move2[0]][move2[1]] = move2_save
+                moved = True
+        else:
+            continue
+    
+    return avalible_moves
+
+#Rook function
+def rook(move1_number, move1_letter):
+    i = 1
+    r = 1
+
+    avalible_moves = []
+    while i == 1:
+        if s[move1_number + r][move1_letter] == ' ' and [move1_number + r, move1_letter] not in edge:
+            avalible_moves.append([move1_number + r, move1_letter])
+            r += 1
+            continue
+        elif s[move1_number + r][move1_letter] != ' ' and s[move1_number + r][move1_letter][1] == turn * -1:
+                avalible_moves.append([move1_number + r, move1_letter])
+                break
+        else:
+            break
+    r = 1
+    while i == 1:
+        if s[move1_number - r][move1_letter] == ' ' and [move1_number - r, move1_letter] not in edge:
+            avalible_moves.append([move1_number - r, move1_letter])
+            r += 1
+            continue
+        elif s[move1_number - r][move1_letter] != ' ' and s[move1_number - r][move1_letter][1] == turn * -1:
+                avalible_moves.append([move1_number - r, move1_letter])
+                break
+        else:
+            break
+
+    r = 1
+    while i == 1:
+        if s[move1_number][move1_letter + r] == ' '  and [move1_number, move1_letter + r] not in edge:
+            avalible_moves.append([move1_number, move1_letter + r])
+            r += 1
+            continue
+        elif s[move1_number][move1_letter + r] != ' ' and s[move1_number][move1_letter + r][1] == turn * -1:
+                avalible_moves.append([move1_number, move1_letter + r])
+                break
+        else:
+            break
+
+    r = 1
+    while i == 1:
+        if s[move1_number][move1_letter - r] == ' ' and [move1_number, move1_letter - r] not in edge:
+            avalible_moves.append([move1_number, move1_letter - r])
+            r += 1
+            continue
+        elif s[move1_number][move1_letter - r] != ' ' and s[move1_number][move1_letter - r][1] == turn * -1:
+                avalible_moves.append([move1_number, move1_letter - r])
+                break
+        else:
+            break
+    return avalible_moves
+
+#Knight function
+def knight(move1_number, move1_letter):
+    avalible_moves = []
+    moves = []
+    global turn
+
+
+    if move1_number >= 4 and move1_letter <= 8:
+        moves.append([move1_number -2, move1_letter + 1]) 
+    if move1_number >= 4 and move1_letter >= 3:      
+        moves.append([move1_number -2, move1_letter -1])
+    if move1_number >= 3 and move1_letter <= 7:
+        moves.append([move1_number - 1, move1_letter + 2]) 
+    if move1_number <=8 and move1_letter <= 7:
+        moves.append([move1_number + 1, move1_letter + 2]) 
+    if move1_number <= 7 and move1_letter <= 8:
+        moves.append([move1_number + 2, move1_letter + 1])
+    if move1_number <= 7 and move1_letter >= 3:  
+        moves.append([move1_number + 2, move1_letter - 1])  
+    if move1_number <= 8 and move1_letter >= 4:
+        moves.append([move1_number + 1, move1_letter - 2]) 
+    if move1_number >= 3 and move1_letter >= 4:
+        moves.append([move1_number - 1, move1_letter - 2])  
+    
+    for move in moves:
+        if s[move[0]][move[1]] != ' ':
+            if s[move[0]][move[1]][1] == turn:
+                moves.remove(move)
+    return moves
+
+#Bishop function
+def bishop(move1_number, move1_letter):
+    i = 1
+    r = 1
+    avalible_moves = []
+    while i == 1:
+        if s[move1_number + r][move1_letter + r] == ' ' and [move1_number + r, move1_letter + r] not in edge:
+            avalible_moves.append([move1_number + r, move1_letter + r])
+            r += 1
+            continue
+        elif s[move1_number + r][move1_letter + r] != ' ' and s[move1_number + r][move1_letter + r][1] == turn * -1:
+                avalible_moves.append([move1_number + r, move1_letter + r])
+                break
+        else:
+            break
+
+    r = 1
+    while i == 1:
+        if s[move1_number - r][move1_letter - r] == ' ' and [move1_number - r, move1_letter - r] not in edge:
+            avalible_moves.append([move1_number - r, move1_letter - r])
+            r += 1
+            continue
+        elif s[move1_number - r][move1_letter - r] != ' ' and s[move1_number - r][move1_letter - r][1] == turn * -1:
+                avalible_moves.append([move1_number - r, move1_letter - r])
+                break
+        else:
+            break
+
+    r = 1
+    while i == 1:
+        if s[move1_number - r][move1_letter + r] == ' '  and [move1_number - r, move1_letter + r] not in edge:
+            avalible_moves.append([move1_number - r, move1_letter + r])
+            r += 1
+            continue
+        elif s[move1_number - r][move1_letter + r] != ' ' and s[move1_number - r][move1_letter + r][1] == turn * -1:
+                avalible_moves.append([move1_number - r, move1_letter + r])
+                break
+        else:
+            break
+    
+    r = 1
+    while i == 1:
+        if s[move1_number + r][move1_letter - r] == ' ' and [move1_number + r, move1_letter - r] not in edge:
+            avalible_moves.append([move1_number + r, move1_letter - r])
+            r += 1
+            continue
+        elif s[move1_number + r][move1_letter - r] != ' ' and s[move1_number + r][move1_letter - r][1] == turn * -1:
+                avalible_moves.append([move1_number + r, move1_letter - r])
+                break
+        else:
+            break
+
+    return avalible_moves
+
+#King function
+def king(move1_number, move1_letter):
+    #input('You are entering the king function')
+
+    moves = []
+    global turn
+    global invalid_message
+    global just_checking
+    global casteling
+
+    if move1_number <= 8:
+        moves.append([move1_number + 1, move1_letter])
+    if move1_letter <= 8:
+        moves.append([move1_number, move1_letter + 1])
+    if move1_number >= 3:
+        moves.append([move1_number - 1, move1_letter])
+    if move1_letter >= 3:
+        moves.append([move1_number, move1_letter - 1])
+    if move1_number <= 8 and move1_letter >= 3:
+        moves.append([move1_number + 1, move1_letter - 1])
+    if move1_number >= 3 and move1_letter <= 8:
+        moves.append([move1_number - 1, move1_letter + 1])
+    if move1_number <= 8 and move1_letter <= 8:
+        moves.append([move1_number + 1, move1_letter + 1])
+    if move1_number >= 3 and move1_letter >= 3:
+        moves.append([move1_number -1 , move1_letter - 1])
+
+    x = moves
+    moves = []
+    n = 0
+    for row in s:
+        l = 0
+        for move in row:
+            if move != ' ':
+                if move[1] != turn:
+                        if [n, l] in x:
+                            moves.append([n, l])
+            elif [n, l] in x:
+                if just_checking == False:
+                    if check_square(n, l) == False:
+                        moves.append([n, l])
+                    elif first_move == False:
+                        if [n, l] == [move2_number, move2_letter]:
+                            invalid_message = 'That would be suicide!'
+            l += 1
+        n += 1
+    #Casteling
+
+    #input(casteling)
+
+    if casteling == True and just_checking == False:
+        #input('You are entering the casteling function')
+
+        #just_checking = True
+        #Short caslte on player 1's side
+        #input('Testing Player 1 caslte')
+
+        if (s[move1_number][move1_letter][3] == True) and (turn == 1):
+            if [move2_number, move2_letter] == [9, 8]:
+                if (s[9][9] != ' ') and (s[9][9][1] == 1) and (s[9][9][2] == 'rook'):
+                    if (s[9][9][3] == True) and (check_square(move1_number, move1_letter) == False):    
+                        if (s[9][8] == ' ') and (s[9][7] == ' '):
+                            #turn *= -1
+                            t = check_square(9,8)
+                            u = check_square(9,7)
+                            #turn *= -1
+                            if (t == False) and (u == False):
+                                if [move2_number, move2_letter] == [9, 8]:
+                                    s[9][7] = s[9][9]
+                                    s[9][9] = ' '
+                                    moves.append([9,8])
+                            elif check_square(move2_number, move2_letter) == True:
+                                invalid_message = 'That would be suicide!'
+                            #turn *= -1
+
+            #Long caslte on player 1's side
+            if [move2_number, move2_letter] == [9, 4]:
+                if (s[9][2] != ' ') and (s[9][2][1] == 1) and (s[9][2][2] == 'rook'):
+                    if (s[9][2][3] == True) and (check_square(move1_number, move1_letter) == False):
+                        if (s[9][3] == ' ') and (s[9][4] == ' ') and (s[9][5] == ' '):
+                            #input(turn)
+                            #turn *= -1
+                            #print(check_square(9,3), check_square(9,4), check_square(9,5))
+                            #input()
+                            if (check_square(9,3) == False) and (check_square(9,4) == False) and (check_square(9,5) == False):
+                                s[9][5] = s[9][2]
+                                s[9][2] = ' '
+                                moves.append([9,4])
+                            elif check_square(move2_number, move2_letter) == True:
+                                invalid_message = 'That would be suicide!'
+                            #turn *= -1
+
+        #Long caslte on player 2's side
+        if (s[move1_number][move1_letter][3] == True) and (turn == -1):
+            if [move2_number, move2_letter] == [9, 4]:
+                if (s[2][2] != ' ') and (s[2][2][1] == -1) and (s[2][2][2] == 'rook'):
+                    if (s[2][3] == ' ') and (s[2][4] == ' ') and (s[2][5] == ' '):
+                        if (s[2][2][3] == True)  and (check_square(move1_number, move1_letter) == False):
+                            #turn *= -1
+                            if (check_square(2,3) == False) and (check_square(2,4) == False) and (check_square(2,5) == False):
+                                if [move2_number, move2_letter] == [2, 4]:
+                                    s[2][5] = s[2][2]
+                                    s[2][2] = ' '
+                                    moves.append([2,4])
+                            elif check_square(move2_number, move2_letter) == True:
+                                invalid_message = 'That would be suicide!'
+                            #turn *= -1
+
+            #Short caslte on player 2's side
+            if [move2_number, move2_letter] == [9, 4]:
+                if (s[2][9] != ' ') and (s[2][9][1] == -1) and (s[2][9][2] == 'rook'):
+                    if (s[2][9][3] == True) and (check_square(move1_number, move1_letter) == False):
+                        if (s[2][7] == ' ') and (s[2][8] == ' '):
+                            #turn *= -1
+                            if (check_square(2,7) == False) and (check_square(2,8) == False):
+                                if [move2_number, move2_letter] == [2, 8]:
+                                    s[2][7] = s[2][9]
+                                    s[2][9] = ' '
+                                    moves.append([2,8])
+                            elif check_square(move2_number, move2_letter) == True:
+                                invalid_message = 'That would be suicide!'
+                            #turn *= -1
+
+                        
+        #input('Test concluded')
+        #just_checking = False
+        #input('You are leaving the casteling function')
+
+    #input('You are leaving the king function')
+
+    return moves
+
+#Queen function
+def queen(move1_number, move1_letter):
+        avalible_moves = rook(move1_number, move1_letter) + bishop(move1_number, move1_letter)
+        return avalible_moves
+
+#Check square function
+def check_square(number, letter):
+    global turn
+    turn *= -1
+    #input(turn)
+    avalible_moves = []
+    attack = False
+    global just_checking
+    just_checking = True
+
+    
+    if first_move == False:
+        move2_save = s[move2_number][move2_letter]
+        s[move2_number][move2_letter] = s[move1_number][move1_letter]
+        s[move1_number][move1_letter] = ' '
+
+    for n in range(2,10):
+        for l in range(2,10):
+            if s[n][l] != ' ':
+                if s[n][l][1] == turn:
+                    
+                    if s[n][l][2] == 'pawn':
+                        avalible_moves.append([[n - turn, l - 1], [n - turn, l + 1]])
+                        #print('Pawn', n, l, [n - turn, l - 1], [n - turn, l + 1])
+                        #input()
+                    if s[n][l][2] == 'rook':
+                        avalible_moves.append(rook(n,l))
+                        #print('Rook', n, l, rook(n,l))
+                        #input()
+                    if s[n][l][2] == 'knight':
+                        avalible_moves.append(knight(n,l))
+                        #print('Knight', n, l, knight(n,l))
+                        #input()
+                    if s[n][l][2] == 'bishop':
+                        avalible_moves.append(bishop(n,l))
+                        #if check == True:
+                         #   print('Bishop', n, l, bishop(n,l))
+                            #if first_move == False:
+                             #   print('Move:')
+                              #  input(s[move2_number][move2_letter])
+                    if s[n][l][2] == 'queen':
+                        avalible_moves.append(queen(n,l))
+                        #print('Queen', n, l, queen(n,l))
+                        #input()
+                    if s[n][l][2] == 'king':
+                        just_checking = True
+                        avalible_moves.append(king(n,l))
+                        #print('King', n, l, king(n,l))
+                        #input()
+                        just_checking = False
+
+    if first_move == False:
+        s[move1_number][move1_letter] = s[move2_number][move2_letter]
+        s[move2_number][move2_letter] = move2_save
+    #input(avalible_moves)
+    #input([number, letter])
+    for move_set in avalible_moves:
+        for move in move_set:
+            if move == [number, letter]:
+                attack = True
+
+    #if first_move == False:
+        #input(avalible_moves)
+    #print(attack)
+    #input()
+
+
+    turn *= -1
+    just_checking = False
+
+    return attack
+
+#Checks to see if a player is in checkmate
+def checkmate():
+    global turn
+
+
+    if turn == 1:
+        if len(king(color1King[4][0], color1King[4][1])) == 0:
+            return True
+
+
+#--------------------------------------------------------------------------------------#
+#This is the main game loop.
+i = start_screen()
+
+invalid_move = False
+checkmate = False
+casteling = False
+just_checking = False
+invalid_message = "Invalid Move!"
+turn = -1
+
+morgue2 = [color1Pawn, color1Pawn, color1Queen]
+morgue1 = [color2Bishop]
+#morgue1 = []
+#morgue2 = []
+
+while i == 0:
+    os.system('clear')
+   # input('Entering in main loop!')
+    
+    print()
+    moved = False
+
+    #if first_move == False:
+   
+
+    #Notifies the next player that they are in check   
+   # if turn == 1:
+    #    check = True
+     #   print(turn, check_square(color1King[4][0], color1King[4][1]))
+      #  check = False
+       # if check_square(color1King[4][0], color1King[4][1]) == True:
+      #      print(f'\033[1;3{color1}mYou are in check!')            
+    
+    #if turn == -1:
+     #   check = True
+      #  print(turn, check_square(color2King[4][0], color2King[4][1]))
+       # check = False
+       # if check_square(color2King[4][0], color2King[4][1]) == True:
+        #    print(f'\033[1;3{color2}mYou are in check!')
+
+    #print(checkmate)
+    #input()
+
+    print()
+
+    #Prints either board
+    if turn == 1:
+        board()
+    elif turn == -1:
+        flipped_board()
+
+    #Checks if the current player is in checkmate
+    #input(checkmate)
+    #input(king(color1King[4][0], color1King[4][1]))
+    if checkmate == True:
+        input('Checkmate!!!')
+        break
+
+
+    #Notifies the player that the last move was invalid
+    if invalid_move == True:
+        print(f"{invalid_message}")
+        invalid_move = False
+        invalid_message = "Invalid Move!"
+    
+    #Prompts the player to enter a move
+    if turn == 1:
+        print(f'\033[1;3{color1}m')
+    if turn == -1:
+        print(f'\033[1;3{color2}m')
+        
+    move = input(f'Enter a move:\n')
+    
+    #Allows the player to quit the game at any time
+    if move.upper() == 'QUIT':
+        i = 1
+        continue
+    
+    #Controls what's entered into the textbox
+    if (len(move.split()) != 3):
+        continue
+    if len(move.split()[1]) != 2:
+        continue
+    if (string_to_list(move)[1][0].upper() != 'T') or (string_to_list(move)[1][1].upper() != 'O'):
+        continue    
+
+    #This processes the move
+    moveA = move.split(' ' + move.split()[1] + ' ')[0]
+    moveB = move.split(' ' + move.split()[1] + ' ')[1]
+    
+    #Controls what's entered into the textbox
+    if (len(moveA) != 2) or (len(moveB) != 2):
+        continue
+    if (moveA[1] not in numbers_list) or (moveB[1] not in numbers_list):
+        invalid_move = True
+        continue
+    if (moveA[0].upper() not in letters_list) or (moveB[0].upper() not in letters_list):
+        invalid_move = True
+        continue
+    
+    move1 = [number_to_number(moveA), letter_to_number(moveA)]
+    move2 = [number_to_number(moveB), letter_to_number(moveB)]
+
+    move1_letter = move1[1]
+    move1_number = move1[0]
+    move2_letter = move2[1]
+    move2_number = move2[0]
+    
+    first_move = False
+
+    if s[move1_number][move1_letter] != ' ':
+        if s[move1_number][move1_letter][1] == turn:
+            #Checks to see if a player is casteling
+            if first_move == False:
+                    if s[move2_number][move2_letter] == ' ':
+                        if s[move1_number][move1_letter][2] == 'king':
+                            if turn == 1:
+                                if [move1_number, move1_letter] == [9, 6] and (([move2_number, move2_letter] == [9, 4]) or ([move2_number, move2_letter] == [9, 8])):
+                                    casteling = True
+                            if turn == -1:
+                                if [move1_number, move1_letter] == [2, 6] and (([move2_number, move2_letter] == [2, 4]) or ([move2_number, move2_letter] == [2, 8])):
+                                    casteling = True
+        #Checks to see which piece is being moved and determines if the move in question is legal
+
+            if s[move1_number][move1_letter][2] == 'pawn':
+                avalible_moves = pawn(move1_number, move1_letter)
+
+            elif s[move1_number][move1_letter][2] == 'rook':
+                avalible_moves = rook(move1_number, move1_letter)
+            
+            elif s[move1_number][move1_letter][2] == 'knight':
+                avalible_moves = knight(move1_number, move1_letter)
+            
+            elif s[move1_number][move1_letter][2] == 'bishop':
+                avalible_moves = bishop(move1_number, move1_letter)
+            
+            elif s[move1_number][move1_letter][2] == 'king':
+                avalible_moves = king(move1_number, move1_letter)
+            
+            elif s[move1_number][move1_letter][2] == 'queen':
+                avalible_moves = queen(move1_number, move1_letter)
+        else:
+            invalid_move = True
+            continue
+    else:
+            invalid_move = True
+            continue
+
+    #Checks to see if En Passant if possible
+    passant = False
+    for item in avalible_moves:
+        if len(item) > 2 and item[1] == 'passant':
+            if item[0] != turn:
+                passant_pawns.append(item)
+                passant = True
+            else:
+                passant = False
+        
+
+
+    if s[move1_number][move1_letter][2] == 'pawn' and len(passant_pawns) > 0:
+        for item in passant_pawns: 
+            if item[0] == turn:
+                if [move1[0],move1[1]] in item and [move2[0],move2[1]] == [item[3][0] + (turn * -1), item[2][1]]:
+                    avalible_moves.append([item[3][0] + (turn * -1), item[2][1]])
+                    s[item[2][0]][item[2][1]] = ' '
+                    passant_pawns.remove(item)
+    if passant == False:
+        passant_pawns = []
+
+
+    #Prevents a player from playing an invalid move
+    if [move2_number, move2_letter] not in avalible_moves:
+        #input('oh no')
+        invalid_move = True
+        continue
+    
+    #Sets the rook's first move status to false
+    if s[move1_number][move1_letter][2] == 'rook':
+        s[move1_number][move1_letter][3] = False
+    
+    #Sets the king's first move status to false
+    if s[move1_number][move1_letter][2] == 'king':
+        s[move1_number][move1_letter][3] = False
+
+
+    #Processes a kill
+    if moved == False:
+        if s[move2_number][move2_letter] != ' ':
+            if s[move2_number][move2_letter][1] == 1:
+                morgue2.append(s[move2_number][move2_letter])
+            if s[move2_number][move2_letter][1] == -1:
+                morgue1.append(s[move2_number][move2_letter])
+
+    #Moves the piece
+    s[move2_number][move2_letter] = s[move1_number][move1_letter]
+    s[move1_number][move1_letter] = ' '
+        
+      #  os.system('clear')
+
+        #Updates the kings original coordinates
+    if s[move2_number][move2_letter][2] == 'king':
+        s[move2_number][move2_letter][4] = [move2_number, move2_letter]
+    
+    
+    #Switches turns
+    turn *= -1
+
+
+
+os.system('clear')
+
