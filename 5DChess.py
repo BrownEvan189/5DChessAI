@@ -1,3 +1,5 @@
+import copy
+
 rank = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 univ0 = 0
 
@@ -18,6 +20,7 @@ class Piece():
             
         
 def movePiece(board, m):
+    m = m.replace('U', 'T').split('T')
     univ = int(m[1])
     time = int(m[2][0])
     x = rank.index(m[2][1])
@@ -26,6 +29,8 @@ def movePiece(board, m):
     new_time = int(m[4][0])
     new_x = rank.index(m[4][1])
     new_y = int(m[4][2]) - 1
+    
+    board[univ].append([board[univ][time][i][:] for i in range(len(board[univ][time]))])
 
     if time + 1 != new_time and board[univ][time][y][x].color == 'W':
         board.append([[[]]])
@@ -33,7 +38,7 @@ def movePiece(board, m):
             board[len(board) - 1].append([[]])
         board[len(board) - 1].append(board[new_univ][new_time])
         
-        board[len(board) - 1][new_time + 1][new_y][new_x] = board[new_univ][new_time][y][x]
+        board[len(board) - 1][new_time + 1][new_y][new_x] = copy.copy(board[univ][time][y][x])
         board[len(board) - 1][new_time + 1][y][x] = ' '
 
     elif time + 1 != new_time:
@@ -42,23 +47,14 @@ def movePiece(board, m):
             board[0].append([[]])
         board[0].append(board[new_univ][new_time])
         
-        board[0][new_time + 1][new_y][new_x] = board[new_univ][new_time][y][x]
+        board[0][new_time + 1][new_y][new_x] = board[univ][time][y][x]
         board[0][new_time + 1][y][x] = ' '
+
+        univ0 += 1
 
     else:
         board[new_univ][new_time][new_y][new_x] = board[new_univ][new_time][y][x]
         board[new_univ][new_time][y][x] = ' '
-        
-def move(board, move):
-    m = move.replace('U', 'T').split('T')
-
-    univ = int(m[1])
-    time = int(m[2][0])
-    x = rank.index(m[2][1])
-    y = int(m[2][2]) - 1
-
-    board[univ].append([board[univ][time][i][:] for i in range(len(board[univ][time]))])
-    movePiece(board, m)
 
 
 current_board = [
@@ -102,6 +98,34 @@ def view_board(univ, time):
     print('   +---+---+---+---+---+---+---+---+')
     print('     a | b | c | d | e | f | g | h')
 
-for i in range(10):
-    view_board(0, i)
-    move(board_array, input())
+def map():
+    for j in range(len(board_array)):
+        for i in range(len(board_array[j])):
+            print(f'[{j},{i}]',end='')
+        print('\n')
+
+command = input("Enter a command: ")
+if command == "play":
+    view_board(0,0)
+    while(1):
+        move = input("Enter a move: ")
+        if move == "map":
+            map()
+        elif move[0:4] == 'view':
+            view_board(int(move[5]), int(move[7]))
+        else:
+            movePiece(board_array, move)
+
+            m = move.replace('U', 'T').split('T')
+            univ = int(m[1])
+            time = int(m[2][0])
+            x = rank.index(m[2][1])
+            y = int(m[2][2]) - 1
+
+            view_board(int(m[3]), int(m[4][0]))
+
+
+        
+
+
+
