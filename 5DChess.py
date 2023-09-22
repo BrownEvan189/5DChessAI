@@ -1,11 +1,16 @@
 rank = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+univ0 = 0
 
 class Piece():
-    def __init__(self, name):
+    def __init__(self, name, color):
         self.name = name
+        self.color = color
 
     def __str__(self):
-        return self.name
+        if(self.color == 'B'):
+            return f'\033[1;31m' + self.name + f'\033[1;37m'
+        else:
+            return f'\033[1;32m' + self.name + f'\033[1;37m'
 
     def getMovements(self):
         if self.name == "K":
@@ -14,6 +19,7 @@ class Piece():
         
 def movePiece(board, m):
     univ = int(m[1])
+    time = int(m[2][0])
     x = rank.index(m[2][1])
     y = int(m[2][2]) - 1
     new_univ = int(m[3])
@@ -21,8 +27,27 @@ def movePiece(board, m):
     new_x = rank.index(m[4][1])
     new_y = int(m[4][2]) - 1
 
-    board[new_univ][new_time][new_y][new_x] = board[univ][new_time][y][x]
-    board[univ][new_time][y][x] = ' '
+    if time + 1 != new_time and board[univ][time][y][x].color == 'W':
+        board.append([[[]]])
+        for i in range(new_time):
+            board[len(board) - 1].append([[]])
+        board[len(board) - 1].append(board[new_univ][new_time])
+        
+        board[len(board) - 1][new_time + 1][new_y][new_x] = board[new_univ][new_time][y][x]
+        board[len(board) - 1][new_time + 1][y][x] = ' '
+
+    elif time + 1 != new_time:
+        board.insert(0, [[[]]])
+        for i in range(new_time):
+            board[0].append([[]])
+        board[0].append(board[new_univ][new_time])
+        
+        board[0][new_time + 1][new_y][new_x] = board[new_univ][new_time][y][x]
+        board[0][new_time + 1][y][x] = ' '
+
+    else:
+        board[new_univ][new_time][new_y][new_x] = board[new_univ][new_time][y][x]
+        board[new_univ][new_time][y][x] = ' '
         
 def move(board, move):
     m = move.replace('U', 'T').split('T')
@@ -37,14 +62,14 @@ def move(board, move):
 
 
 current_board = [
+    [Piece('R', 'B'),Piece('K', 'B'),Piece('B', 'B'),Piece('Q', 'B'),Piece('K', 'B'),Piece('B', 'B'),Piece('K', 'B'),Piece('R', 'B')],
+    [Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B')],
     [' ',' ',' ',' ',' ',' ',' ',' '],
     [' ',' ',' ',' ',' ',' ',' ',' '],
     [' ',' ',' ',' ',' ',' ',' ',' '],
     [' ',' ',' ',' ',' ',' ',' ',' '],
-    [' ',' ',' ',' ',' ',Piece("K"),' ',' '],
-    [' ',' ',' ',' ',' ',' ',' ',' '],
-    [' ',' ',' ',' ',' ',' ',' ',' '],
-    [' ',' ',' ',' ',' ',' ',' ',' '],
+    [Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W')],
+    [Piece('R', 'W'),Piece('K', 'W'),Piece('B', 'W'),Piece('Q', 'W'),Piece('K', 'W'),Piece('B', 'W'),Piece('K', 'W'),Piece('R', 'W')],
 ]
 
 
@@ -77,7 +102,6 @@ def view_board(univ, time):
     print('   +---+---+---+---+---+---+---+---+')
     print('     a | b | c | d | e | f | g | h')
 
-view_board(0,0)
-move(board_array, input())
-view_board(0,0)
-view_board(0,1)
+for i in range(10):
+    view_board(0, i)
+    move(board_array, input())
