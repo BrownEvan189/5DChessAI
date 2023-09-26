@@ -1,6 +1,9 @@
 import copy
+import os
+from turtle import clear
 
 rank = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+
 univ0 = 0
 
 class Piece():
@@ -20,6 +23,7 @@ class Piece():
             
         
 def movePiece(board, m):
+    global univ0
     m = m.replace('U', 'T').split('T')
     univ = int(m[1])
     time = int(m[2][0])
@@ -30,31 +34,46 @@ def movePiece(board, m):
     new_x = rank.index(m[4][1])
     new_y = int(m[4][2]) - 1
     
-    board[univ].append([board[univ][time][i][:] for i in range(len(board[univ][time]))])
+    board[univ].append([board[univ][time][i][:] for i in range(len(board[univ][time]))]) #Copies the previous board into the next time
 
-    if time + 1 != new_time and board[univ][time][y][x].color == 'W':
-        board.append([[[]]])
-        for i in range(new_time):
-            board[len(board) - 1].append([[]])
-        board[len(board) - 1].append(board[new_univ][new_time])
-        
-        board[len(board) - 1][new_time + 1][new_y][new_x] = copy.copy(board[univ][time][y][x])
-        board[len(board) - 1][new_time + 1][y][x] = ' '
+    if time + 1 != new_time and board[univ][time][y][x].color == 'W': #If white is travelling back in time
+        board.append([]) #Increments one universe down 
+        for i in range(new_time + 1):
+            board[univ + 1].append(' ')
+        board[univ + 1].append(copy.deepcopy(board[new_univ][new_time]))
+        board[univ + 1][new_time + 1][new_y][new_x] = board[univ][time][y][x]
+        board[univ][time][y][x] = ' '
 
-    elif time + 1 != new_time:
-        board.insert(0, [[[]]])
-        for i in range(new_time):
-            board[0].append([[]])
-        board[0].append(board[new_univ][new_time])
+        new_coords = [new_univ + 1, new_time + 1]
+        return new_coords
         
-        board[0][new_time + 1][new_y][new_x] = board[univ][time][y][x]
-        board[0][new_time + 1][y][x] = ' '
+        
+        
+        #for i in range(new_time):
+        #    board[len(board) - 1].append([[]])
+        #board[len(board) - 1].append(board[new_univ][new_time])
+        
+        #board[len(board) - 1][new_time + 1][new_y][new_x] = copy.copy(board[univ][time][y][x])
+        #board[len(board) - 1][new_time + 1][y][x] = ' '
+
+    elif time + 1 != new_time: #If black is travelling back in time
+        board.insert(0, []) #Increments one universe down 
+        for i in range(new_time + 1):
+            board[0].append(' ')
+        board[0].append(copy.deepcopy(board[new_univ + 1][new_time]))
+        board[0][new_time + 1][new_y][new_x] = board[univ + 1][time][y][x]
+        board[univ + 1][time][y][x] = ' '
 
         univ0 += 1
+        new_coords = [0, new_time + 1]
+        return new_coords
+
+        
 
     else:
         board[new_univ][new_time][new_y][new_x] = board[new_univ][new_time][y][x]
         board[new_univ][new_time][y][x] = ' '
+        return [new_univ, new_time]
 
 
 current_board = [
@@ -99,33 +118,32 @@ def view_board(univ, time):
     print('     a | b | c | d | e | f | g | h')
 
 def map():
+    if  univ0 > 0:
+        print('U |')
+    else:
+        print('U|')
     for j in range(len(board_array)):
-        for i in range(len(board_array[j])):
-            print(f'[{j},{i}]',end='')
-        print('\n')
-
-command = input("Enter a command: ")
-if command == "play":
-    view_board(0,0)
-    while(1):
-        move = input("Enter a move: ")
-        if move == "map":
-            map()
-        elif move[0:4] == 'view':
-            view_board(int(move[5]), int(move[7]))
+        if j - univ0 < 0:
+            print(f'{j - univ0}|',end='')
         else:
-            movePiece(board_array, move)
+             print(f'{j - univ0} |',end='')           
+        for i in range(len(board_array[j])):
+            if board_array[j][i] == ' ':
+                print('     ',end='')
+            else:
+                print(f'[{j},{i}]',end='')
+        print()
 
-            m = move.replace('U', 'T').split('T')
-            univ = int(m[1])
-            time = int(m[2][0])
-            x = rank.index(m[2][1])
-            y = int(m[2][2]) - 1
-
-            view_board(int(m[3]), int(m[4][0]))
-
-
-        
-
-
-
+os.system('clear')
+#command = input("Enter a command: ")
+#if command == "play":
+view_board(0,0)
+while(1):
+    move = input("Enter a move: ")
+    if move == "map":
+        map()
+    elif move[0:4] == 'view':
+        view_board(int(move[5]), int(move[7]))
+    else:
+        new_coords = movePiece(board_array, move)
+        view_board(new_coords[0], new_coords[1])
