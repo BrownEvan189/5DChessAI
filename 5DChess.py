@@ -42,7 +42,7 @@ def movePiece(board, m):
             board[univ + 1].append(' ')
         board[univ + 1].append(copy.deepcopy(board[new_univ][new_time]))
         board[univ + 1][new_time + 1][new_y][new_x] = board[univ][time][y][x]
-        board[univ][time][y][x] = ' '
+        board[univ][time + 1][y][x] = ' '
 
         new_coords = [new_univ + 1, new_time + 1]
         return new_coords
@@ -62,7 +62,7 @@ def movePiece(board, m):
             board[0].append(' ')
         board[0].append(copy.deepcopy(board[new_univ + 1][new_time]))
         board[0][new_time + 1][new_y][new_x] = board[univ + 1][time][y][x]
-        board[univ + 1][time][y][x] = ' '
+        board[univ + 1][time + 1][y][x] = ' '
 
         univ0 += 1
         new_coords = [0, new_time + 1]
