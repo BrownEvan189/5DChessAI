@@ -6,6 +6,19 @@ rank = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 
 univ0 = 0
 
+def parse_move(m):
+    m = m.replace('U', 'T').split('T')
+    univ = int(m[1])
+    time = int(m[2][0])
+    x = rank.index(m[2][1])
+    y = int(m[2][2]) - 1
+    new_univ = int(m[3])
+    new_time = int(m[4][0])
+    new_x = rank.index(m[4][1])
+    new_y = int(m[4][2]) - 1
+
+    return {'univ': univ, 'time': time, 'x': x, 'y': y, 'new_univ': new_univ, 'new_time': new_time, 'new_x': new_x, 'new_y': new_y}
+
 class Piece():
     def __init__(self, name, color):
         self.name = name
@@ -16,27 +29,134 @@ class Piece():
             return f'\033[1;31m' + self.name + f'\033[1;37m'
         else:
             return f'\033[1;32m' + self.name + f'\033[1;37m'
-
-    def getMovements(self):
-        if self.name == "K":
-            return [0, 0, 1, 0]
-            
         
+    def getMovements(self, board, m):
+        coords = parse_move(m)
+        univ = coords['univ']
+        time = coords['time']
+        x = coords['x']
+        y = coords['y']
+
+        moves = []
+
+        if self.name == "P" and self.color == "W":
+            moves = [f"U{univ}T{time + 1}{x}{y - 2}", f"U{univ}T{time + 1}{x}{y - 1}", f"U{univ + 1}T{time}{x}{y}", f"U{univ}T{time}{rank[x - 1]}{y - 1}", f"U{univ}T{time + 1}{rank[x + 1]}{y - 1}"]
+
+            if y != 7:
+                moves.remove(f"U{univ}T{time + 1}{x}{y - 2}")
+            if board[univ + 1][time][y][x] != ' ':
+                moves.remove(f"U{univ + 1}T{time}{x}{y}")
+            if board[univ][time + 1][y - 1][x] != ' ':
+                moves.remove(f"U{univ}T{time + 1}{x}{y - 1}")
+            if board[univ][time + 1][y - 1][x - 1].color != 'B':
+                moves.remove(f"U{univ}T{time}{rank[x - 1]}{y - 1}")
+            if board[univ][time + 1][y - 1][x + 1].color != 'B':
+                moves.remove(f"U{univ}T{time}{rank[x + 1]}{y - 1}")
+
+        if self.name == "P" and self.color == "B":
+            moves = [f"U{univ}T{time + 1}{x}{y + 2}", f"U{univ}T{time + 1}{x}{y + 1}", f"U{univ + 1}T{time}{x}{y}", f"U{univ}T{time}{rank[x - 1]}{y + 1}", f"U{univ}T{time + 1}{rank[x + 1]}{y + 1}"]
+
+            if y != 7:
+                pawn_moves.remove(f"U{univ}T{time + 1}{x}{y + 2}")
+            if board[univ + 1][time][y][x] != ' ':
+                pawn_moves.remove(f"U{univ + 1}T{time}{x}{y}")
+            if board[univ][time + 1][y - 1][x] != ' ':
+                pawn_moves.remove(f"U{univ}T{time + 1}{x}{y + 1}")
+            if board[univ][time + 1][y - 1][x - 1].color != 'W':
+                pawn_moves.remove(f"U{univ}T{time}{rank[x - 1]}{y + 1}")
+            if board[univ][time + 1][y - 1][x + 1].color != 'W':
+                pawn_moves.remove(f"U{univ}T{time}{rank[x + 1]}{y + 1}")
+        
+        if self.name == "R":
+            
+            for i in range(x, 1, -1):
+                if board[univ][time][y][i] == ' ':
+                    moves.append[f"U{univ}T{time + 1}{rank[i]}{y}"]
+                elif board[univ][time][y][i] == ('W' if self.color == 'B' else 'B'):
+                    moves.append[f"U{univ}T{time + 1}{rank[i]}{y}"]
+                    break
+                else:
+                    break
+            
+            for i in range(x, 8):
+                if board[univ][time][y][i] == ' ':
+                    moves.append[f"U{univ}T{time + 1}{rank[i]}{y}"]
+                elif board[univ][time][y][i] == ('W' if self.color == 'B' else 'B'):
+                    moves.append[f"U{univ}T{time + 1}{rank[i]}{y}"]
+                    break
+                else:
+                    break
+            
+            for i in range(y, 1, -1):
+                if board[univ][time][y][i] == ' ':
+                    moves.append[f"U{univ}T{time + 1}{rank[x]}{i}"]
+                elif board[univ][time][y][i] == ('W' if self.color == 'B' else 'B'):
+                    moves.append[f"U{univ}T{time + 1}{rank[x]}{i}"]
+                    break
+                else:
+                    break
+            
+            for i in range(y, 8):
+                if board[univ][time][y][i] == ' ':
+                    moves.append[f"U{univ}T{time + 1}{rank[x]}{i}"]
+                elif board[univ][time][y][i] == ('W' if self.color == 'B' else 'B'):
+                    moves.append[f"U{univ}T{time + 1}{rank[x]}{i}"]
+                    break
+                else:
+                    break
+            
+            for i in range(0, univ, -1):
+                if board[univ][time][y][i] == ' ':
+                    moves.append[f"U{i}T{time}{rank[x]}{y}"]
+                elif board[univ][time][y][i] == ('W' if self.color == 'B' else 'B'):
+                    moves.append[f"U{i}T{time}{rank[x]}{y}"]
+                    break
+                else:
+                    break
+            
+            for i in range(univ, len(board)):
+                if board[univ][time][y][i] == ' ':
+                    moves.append[f"U{i}T{time}{rank[x]}{y}"]
+                elif board[univ][time][y][i] == ('W' if self.color == 'B' else 'B'):
+                    moves.append[f"U{i}T{time}{rank[x]}{y}"]
+                    break
+                else:
+                    break
+            
+            for i in range(0, time, -2):
+                if board[univ][time][y][i] == ' ':
+                    moves.append[f"U{univ}T{i}{rank[x]}{y}"]
+                elif board[univ][time][y][i] == ('W' if self.color == 'B' else 'B'):
+                    moves.append[f"U{univ}T{i}{rank[x]}{y}"]
+                    break
+                else:
+                    break
+        
+        return moves
+
 def movePiece(board, m):
     global univ0
-    m = m.replace('U', 'T').split('T')
-    univ = int(m[1])
-    time = int(m[2][0])
-    x = rank.index(m[2][1])
-    y = int(m[2][2]) - 1
-    new_univ = int(m[3])
-    new_time = int(m[4][0])
-    new_x = rank.index(m[4][1])
-    new_y = int(m[4][2]) - 1
-    
-    board[univ].append([board[univ][time][i][:] for i in range(len(board[univ][time]))]) #Copies the previous board into the next time
+    coords = parse_move(m)
+    univ = coords['univ']
+    time = coords['time']
+    x = coords['x']
+    y = coords['y']
+    new_univ = coords['new_univ']
+    new_time = coords['new_time']
+    new_x = coords['new_x']
+    new_y = coords['new_y']
 
-    if time + 1 != new_time and board[univ][time][y][x].color == 'W': #If white is travelling back in time
+    board[univ].append([board[univ][time][i][:] for i in range(len(board[univ][time]))]) #Copies the previous board into the next time
+    
+    if time == new_time: #If white is travelling back in time
+        board[new_univ].append([board[new_univ][new_time][i][:] for i in range(len(board[new_univ][new_time]))]) #Copies the previous board into the next time
+
+        board[new_univ][new_time + 1][new_y][new_x] = board[univ][time][y][x]
+        board[univ][time + 1][y][x] = ' '
+        return [new_univ, new_time + 1]
+
+    elif time + 1 != new_time and board[univ][time][y][x].color == 'W':
+
         board.append([]) #Increments one universe down 
         for i in range(new_time + 1):
             board[univ + 1].append(' ')
@@ -46,17 +166,8 @@ def movePiece(board, m):
 
         new_coords = [new_univ + 1, new_time + 1]
         return new_coords
-        
-        
-        
-        #for i in range(new_time):
-        #    board[len(board) - 1].append([[]])
-        #board[len(board) - 1].append(board[new_univ][new_time])
-        
-        #board[len(board) - 1][new_time + 1][new_y][new_x] = copy.copy(board[univ][time][y][x])
-        #board[len(board) - 1][new_time + 1][y][x] = ' '
 
-    elif time + 1 != new_time: #If black is travelling back in time
+    elif time + 1 != new_time:
         board.insert(0, []) #Increments one universe down 
         for i in range(new_time + 1):
             board[0].append(' ')
@@ -68,11 +179,13 @@ def movePiece(board, m):
         new_coords = [0, new_time + 1]
         return new_coords
 
-        
-
     else:
         board[new_univ][new_time][new_y][new_x] = board[new_univ][new_time][y][x]
         board[new_univ][new_time][y][x] = ' '
+
+        if board[new_univ][new_time][new_y][new_x].name == 'P':
+            board[new_univ][new_time][new_y][new_x].name = 'Q'
+
         return [new_univ, new_time]
 
 
@@ -86,15 +199,10 @@ current_board = [
     [Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W')],
     [Piece('R', 'W'),Piece('K', 'W'),Piece('B', 'W'),Piece('Q', 'W'),Piece('K', 'W'),Piece('B', 'W'),Piece('K', 'W'),Piece('R', 'W')],
 ]
-
-
 board_array = [
     []
 ]
-
 board_array[0].append(current_board)
-
-
 def view_board(univ, time):
     current_board = board_array[univ][time]
     print('board ' + str(univ) + ' ' + str(time))
@@ -140,7 +248,10 @@ os.system('clear')
 view_board(0,0)
 while(1):
     move = input("Enter a move: ")
-    if move == "map":
+    coords = parse_move(move)
+    if move not in board_array[coords['univ']][coords['time']][coords['y']][coords['x']].getMovements(board_array, move):
+        print("Illegal move!")
+    elif move == "map":
         map()
     elif move[0:4] == 'view':
         view_board(int(move[5]), int(move[7]))
