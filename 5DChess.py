@@ -37,7 +37,7 @@ class Piece():
             if coords['y'] > 0 and coords['x'] > 0 and board[coords['univ']][coords['time']][coords['y']- 1][coords['x']- 1] != ' ' and board[coords['univ']][coords['time']][coords['y']- 1][coords['x']- 1].color == 'B': moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[coords['x']- 1]}{coords['y']- 1 + Y_OFFSET}")
             if coords['y'] > 0 and coords['x'] < len(rank) - 1 and board[coords['univ']][coords['time']][coords['y']- 1][coords['x']+ 1] != ' ' and board[coords['univ']][coords['time']][coords['y']- 1][coords['x']+ 1].color == 'B': moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[coords['x']+ 1]}{coords['y']- 1 + Y_OFFSET}")
 
-        if self.name == "P" and self.color == "B":
+        elif self.name == "P" and self.color == "B":
 
             if coords['y'] == 1 and board[coords['univ']][coords['time']][coords['y']+ 2][coords['x']] == ' ': moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[coords['x']]}{coords['y']+ 2 + Y_OFFSET}")
             if coords['y'] < 7 and board[coords['univ']][coords['time']][coords['y']+ 1][coords['x']] == ' ': moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[coords['x']]}{coords['y']+ 1 + Y_OFFSET}")
@@ -45,22 +45,22 @@ class Piece():
             if coords['y'] < 7 and coords['x'] > 0 and board[coords['univ']][coords['time']][coords['y']+ 1][coords['x']- 1] != ' ' and board[coords['univ']][coords['time']][coords['y']+ 1][coords['x']- 1].color == 'W': moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[coords['x']- 1]}{coords['y']+ 1 + Y_OFFSET}")
             if coords['y'] < 7 and coords['x'] < len(rank) - 1 and board[coords['univ']][coords['time']][coords['y']+ 1][coords['x']+ 1] != ' ' and board[coords['univ']][coords['time']][coords['y']+ 1][coords['x']+ 1].color == 'W': moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[coords['x']+ 1]}{coords['y']+ 1 + Y_OFFSET}")
         
-        if self.name == "R":
+        elif self.name == "R":
             
             for i in range(coords['x']- 1, -1, -1):
                 if board[coords['univ']][coords['time']][coords['y']][i] == ' ':
-                    moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[i]}{coords['y']+ Y_OFFSET}")
+                    moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[i]}{coords['y'] + Y_OFFSET}")
                 elif board[coords['univ']][coords['time']][coords['y']][i].color == ('W' if self.color == 'B' else 'B'):
-                    moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[i]}{coords['y']+ Y_OFFSET}")
+                    moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[i]}{coords['y'] + Y_OFFSET}")
                     break
                 else:
                     break
             
             for i in range(coords['x']+ 1, 8):
                 if board[coords['univ']][coords['time']][coords['y']][i] == ' ':
-                    moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[i]}{coords['y']+ Y_OFFSET}")
+                    moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[i]}{coords['y'] + Y_OFFSET}")
                 elif board[coords['univ']][coords['time']][coords['y']][i].color == ('W' if self.color == 'B' else 'B'):
-                    moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[i]}{coords['y']+ Y_OFFSET}")
+                    moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[i]}{coords['y'] + Y_OFFSET}")
                     break
                 else:
                     break
@@ -87,9 +87,9 @@ class Piece():
                 if len(board[i]) <= coords['time'] or board[i][coords['time']][0] == ' ':
                     break
                 if board[i][coords['time']][coords['y']][coords['x']] == ' ':
-                    moves.append(f"U{i}T{coords['time']}{rank[coords['x']]}{coords['y']+ Y_OFFSET}")
+                    moves.append(f"U{i}T{coords['time']}{rank[coords['x']]}{coords['y'] + Y_OFFSET}")
                 elif board[i][coords['time']][coords['y']][coords['x']].color == ('W' if self.color == 'B' else 'B'):
-                    moves.append(f"U{i}T{coords['time']}{rank[coords['x']]}{coords['y']+ Y_OFFSET}")
+                    moves.append(f"U{i}T{coords['time']}{rank[coords['x']]}{coords['y'] + Y_OFFSET}")
                     break
                 else:
                     break
@@ -98,9 +98,9 @@ class Piece():
                 if len(board[i]) <= coords['time'] or board[i][coords['time']][0] == ' ':
                     break
                 if board[i][coords['time']][coords['y']][i] == ' ':
-                    moves.append(f"U{i}T{coords['time']}{rank[coords['x']]}{coords['y']+ Y_OFFSET}")
+                    moves.append(f"U{i}T{coords['time']}{rank[coords['x']]}{coords['y'] + Y_OFFSET}")
                 elif board[i][coords['time']][coords['y']][i].color == ('W' if self.color == 'B' else 'B'):
-                    moves.append(f"U{i}T{coords['time']}{rank[coords['x']]}{coords['y']+ Y_OFFSET}")
+                    moves.append(f"U{i}T{coords['time']}{rank[coords['x']]}{coords['y'] + Y_OFFSET}")
                     break
                 else:
                     break
@@ -109,12 +109,56 @@ class Piece():
                 if board[coords['univ']][i][0] == ' ':
                     break
                 if board[coords['univ']][i][coords['y']][coords['x']] == ' ':
-                    moves.append(f"U{coords['univ']}T{i}{rank[coords['x']]}{coords['y']+ Y_OFFSET}")
+                    moves.append(f"U{coords['univ']}T{i}{rank[coords['x']]}{coords['y'] + Y_OFFSET}")
                 elif board[coords['univ']][i][coords['y']][coords['x']].color == ('W' if self.color == 'B' else 'B'):
-                    moves.append(f"U{coords['univ']}T{i}{rank[coords['x']]}{coords['y']+ Y_OFFSET}")
+                    moves.append(f"U{coords['univ']}T{i}{rank[coords['x']]}{coords['y'] + Y_OFFSET}")
                     break
                 else:
                     break
+        
+        elif self.name == 'N':
+            
+            for i in range(-2, 3): # x-positions in the first half, universes in the second half
+                if i != 0 and coords['x'] + i > -1 and coords['x'] + i < 8:
+                    delta_y = 3 - abs(i)
+                    if (coords['y'] + delta_y < 8 and (board[coords['univ']][coords['time']][coords['y'] + delta_y][coords['x'] + i] == ' ' or
+                            board[coords['univ']][coords['time']][coords['y'] + delta_y][coords['x'] + i].color == ('W' if self.color == 'B' else 'B'))):
+                        moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[coords['x'] + i]}{coords['y'] + delta_y + Y_OFFSET}")
+                    if (coords['y'] - delta_y > -1 and (board[coords['univ']][coords['time']][coords['y'] - delta_y][coords['x'] + i] == ' ' or
+                            board[coords['univ']][coords['time']][coords['y'] - delta_y][coords['x'] + i].color == ('W' if self.color == 'B' else 'B'))):
+                        moves.append(f"U{coords['univ']}T{coords['time'] + 1}{rank[coords['x'] + i]}{coords['y'] - delta_y + Y_OFFSET}")
+
+                if coords['univ'] + i > -1 and coords['univ'] + i < len(board):
+                    for j in range(0, -1 * (3 - abs(i)), -1):
+                        if coords['time'] + j > -1 and board[coords['univ'] + i][coords['time'] + j][0] != ' ':
+                            if (abs(i) == 2 and j == -1) or (abs(i) == 1 and j == -2):
+                                if ((board[coords['univ'] + i][coords['time'] + j][coords['y']][coords['x']] == ' ' or
+                                        board[coords['univ'] + i][coords['time'] + j][coords['y']][coords['x']].color == ('W' if self.color == 'B' else 'B'))):
+                                    moves.append(f"U{coords['univ'] + i}T{coords['time'] + j}{rank[coords['x']]}{coords['y'] + Y_OFFSET}")
+
+                            elif (abs(i) == 2 and j == 0) or (abs(i) == 0 and j == -2):
+                                for k in range(-1, 2):
+                                    delta_y = 1 - abs(k)
+                                    if (coords['x'] + k > -1 and coords['x'] + k < 8 and coords['y'] + delta_y < 8 and
+                                            (board[coords['univ'] + i][coords['time'] + j][coords['y'] + delta_y][coords['x'] + k] == ' ' or
+                                            board[coords['univ'] + i][coords['time'] + j][coords['y'] + delta_y][coords['x'] + k].color == ('W' if self.color == 'B' else 'B'))):
+                                        moves.append(f"U{coords['univ'] + i}T{coords['time'] + j}{rank[coords['x'] + k]}{coords['y'] + delta_y + Y_OFFSET}")
+                                    if (coords['x'] + k > -1 and coords['x'] + k < 8 and coords['y'] - delta_y > -1 and
+                                            (board[coords['univ']][coords['time'] + j][coords['y'] - delta_y][coords['x'] + k] == ' ' or
+                                            board[coords['univ'] + i][coords['time'] + j][coords['y'] - delta_y][coords['x'] + k].color == ('W' if self.color == 'B' else 'B'))):
+                                        moves.append(f"U{coords['univ'] + i}T{coords['time'] + j}{rank[coords['x'] + k]}{coords['y'] - delta_y + Y_OFFSET}")
+                            
+                            elif (abs(i) == 1 and j == 0) or (abs(i) == 0 and j == -1):
+                                for k in range(-1, 2):
+                                    delta_y = 2 - 2 * abs(k)
+                                    if (coords['x'] + k > -1 and coords['x'] + k < 8 and coords['y'] + delta_y < 8 and
+                                            (board[coords['univ'] + i][coords['time'] + j][coords['y'] + delta_y][coords['x'] + k] == ' ' or
+                                            board[coords['univ'] + i][coords['time'] + j][coords['y'] + delta_y][coords['x'] + k].color == ('W' if self.color == 'B' else 'B'))):
+                                        moves.append(f"U{coords['univ'] + i}T{coords['time'] + j}{rank[coords['x'] + k]}{coords['y'] + delta_y + Y_OFFSET}")
+                                    if (coords['x'] + k > -1 and coords['x'] + k < 8 and coords['y'] - delta_y > -1 and
+                                            (board[coords['univ']][coords['time'] + j][coords['y'] - delta_y][coords['x'] + k] == ' ' or
+                                            board[coords['univ'] + i][coords['time'] + j][coords['y'] - delta_y][coords['x'] + k].color == ('W' if self.color == 'B' else 'B'))):
+                                        moves.append(f"U{coords['univ'] + i}T{coords['time'] + j}{rank[coords['x'] + k]}{coords['y'] - delta_y + Y_OFFSET}")
         
         for i in range(len(moves)): moves[i] = m[0:6] + moves[i]
         return moves
@@ -168,14 +212,14 @@ def movePiece(board, m):
 
 
 current_board = [
-    [Piece('R', 'B'),Piece('K', 'B'),Piece('B', 'B'),Piece('Q', 'B'),Piece('K', 'B'),Piece('B', 'B'),Piece('K', 'B'),Piece('R', 'B')],
+    [Piece('R', 'B'),Piece('N', 'B'),Piece('B', 'B'),Piece('Q', 'B'),Piece('K', 'B'),Piece('B', 'B'),Piece('N', 'B'),Piece('R', 'B')],
     [Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B')],
     [' ',' ',' ',' ',' ',' ',' ',' '],
     [' ',' ',' ',' ',' ',' ',' ',' '],
     [' ',' ',' ',' ',' ',' ',' ',' '],
     [' ',' ',' ',' ',' ',' ',' ',' '],
     [Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W')],
-    [Piece('R', 'W'),Piece('K', 'W'),Piece('B', 'W'),Piece('Q', 'W'),Piece('K', 'W'),Piece('B', 'W'),Piece('K', 'W'),Piece('R', 'W')],
+    [Piece('R', 'W'),Piece('N', 'W'),Piece('B', 'W'),Piece('Q', 'W'),Piece('K', 'W'),Piece('B', 'W'),Piece('N', 'W'),Piece('R', 'W')],
 ]
 board_array = [
     []
