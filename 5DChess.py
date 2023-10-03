@@ -160,152 +160,45 @@ class Piece():
                                         moves.append(f"U{univ + i}T{time + j}{rank[x + k]}{y - delta_y + Y_OFFSET}")
 
         if self.name == 'B':
-            for i in range(univ + 1, len(board)): #+y in the +U
-                univ_diff = abs(i - univ)
-                if board[i][time] != ' ' and y + univ_diff <= 7:
-                    if board[i][time][y + univ_diff][x].color == self.color:
-                        break
-                    elif board[i][time][y + univ_diff][x].color != self.color:
-                        moves.append(f"U{i}T{time}{rank[x]}{y + univ_diff}")
-                        break
-                    else:
-                        moves.append(f"U{i}T{time}{rank[x]}{y + univ_diff}")
-                        continue
+            #Regular moves for a bishop
             
-            for i in range(univ + 1, len(board)): #-y in the +U
-                univ_diff = abs(i - univ)
-                if board[i][time] != ' ' and y - univ_diff >= 0:
-                    if board[i][time][y - univ_diff][x].color == self.color:
-                        break
-                    elif board[i][time][y - univ_diff][x].color != self.color:
-                        moves.append(f"U{i}T{time}{rank[x]}{y - univ_diff}")
-                        break
-                    else:
-                        moves.append(f"U{i}T{time}{rank[x]}{y - univ_diff}")
-                        continue
-                
-                
-            for i in range(univ - 1, -1, -1): #+y in the -U
-                univ_diff = abs(i - univ)
-                if board[i][time] != ' ' and y + univ_diff <= 7:
-                    if board[i][time][y - univ_diff][x].color == self.color:
-                        break
-                    elif board[i][time][y + univ_diff][x].color != self.color:
-                        moves.append(f"U{i}T{time}{rank[x]}{y + univ_diff}")
+            bishop_array = [[8, -1, 1, -1], [8, 8, 1, 1], [-1, 8, -1, 1], [-1, -1, -1, -1]]
+            for k in bishop_array:
+                i = x + k[2]
+                j = y + k[3]
+                while (i != k[0] and j != k[1]):
+                    if board[univ][time][j][i] != ' ':
+                        if board[univ][time][j][i].color != self.color:
+                            moves.append(f"U{univ}T{time + 1}{rank[i]}{j + 1}")
+                            #input(f'x={i}, y={j}')
                         break
                     else:
-                        moves.append(f"U{i}T{time}{rank[x]}{y + univ_diff}")
-                        continue
-        
-            for i in range(univ - 1, -1, -1): #-y in the -U
-                univ_diff = abs(i - univ)
-                if board[i][time] != ' ' and y - univ_diff >= 0:
-                    if board[i][time][y - univ_diff][x].color == self.color:
-                        break
-                    elif board[i][time][y - univ_diff][x].color != self.color:
-                        moves.append(f"U{i}T{time}{rank[x]}{y - univ_diff}")
-                        break
-                    else:
-                        moves.append(f"U{i}T{time}{rank[x]}{y - univ_diff}")
-                        continue
-
-            for i in range(univ + 1, len(board)): #+x in the +U
-                univ_diff = abs(i - univ)
-                if board[i][time] != ' ' and x + univ_diff <= 7:
-                    if board[i][time][y][x + univ_diff].color == self.color:
-                        break
-                    elif board[i][time][y][x + univ_diff].color != self.color:
-                        moves.append(f"U{i}T{time}{rank[x + univ_diff]}{y}")
-                        break
-                    else:
-                        moves.append(f"U{i}T{time}{rank[x + univ_diff]}{y}")
-                        continue
+                        moves.append(f"U{univ}T{time + 1}{rank[i]}{j + 1}")
+                        #input(f'x={i}, y={j}')
+                        i += (1 * k[2])
+                        j += (1 * k[3])
             
-            for i in range(univ + 1, len(board)): #-x in the +U
-                univ_diff = abs(i - univ)
-                if board[i][time] != ' ' and x - univ_diff >= 0:
-                    if board[i][time][y][x - univ_diff].color == self.color:
-                        break
-                    elif board[i][time][y][x - univ_diff].color != self.color:
-                        moves.append(f"U{i}T{time}{rank[x - univ_diff]}{y}")
-                        break
-                    else:
-                        moves.append(f"U{i}T{time}{rank[x - univ_diff]}{y}")
-                        continue
-                
-                
-            for i in range(univ - 1, -1, -1): #+x in the -U
-                univ_diff = abs(i - univ)
-                if board[i][time] != ' ' and x + univ_diff <= 7:
-                    if board[i][time][y][x + univ_diff].color == self.color:
-                        break
-                    elif boardboard[i][time][y][x + univ_diff].color != self.color:
-                        moves.append(f"U{i}T{time}{rank[x + univ_diff]}{y}")
+            #Bishop moving across universes biship_array = [x-bound, y-bound, x-inc, y-inc, univ-direction, univ-bound] -2 means null
+            bishop_array = [[8, -2, 1, 0, 1, len(board)], [8, -2, 1, 0, -1, -1], #Positive x dir
+                            [-1, -2, -1, 0, 1, len(board)], [-1, -2, -1, 0, -1, -1], #Negative x dir
+                            [-2, 8, 0, 1, 1, len(board)], [-2, 8, 0, 1, -1, -1], #Positive y dir
+                            [-2, -1, 0, -1, 1, len(board)], [-2, -1, 0, -1, -1, -1]] #Negative y dir
+            for k in bishop_array:
+                i = x + k[2]
+                j = y + k[3]
+                u = univ + k[4]
+                while (i != k[0] and j != k[1] and u > 0 and u != k[5]):
+                    if board[u][time][j][i] != ' ':
+                        if board[univ][time][j][i].color != self.color:
+                            moves.append(f"U{u}T{time + 1}{rank[i]}{j + 1}")
+                            #input(f'x={i}, y={j}')
                         break
                     else:
-                        moves.append(f"U{i}T{time}{rank[x + univ_diff]}{y}")
-                        continue
-        
-            for i in range(univ - 1, -1, -1): #-x in the -U
-                univ_diff = abs(i - univ)
-                if board[i][time] != ' ' and x - univ_diff >= 0:
-                    if board[i][time][y][x - univ_diff].color == self.color:
-                        break
-                    elif board[i][time][y][x - univ_diff].color != self.color:
-                        moves.append(f"U{i}T{time}{rank[x - univ_diff]}{y}")
-                        break
-                    else:
-                        moves.append(f"U{i}T{time}{rank[x - univ_diff]}{y}")
-                        continue
-
-            #Moves back through time
-            for i in range(time - 1, -1, -1): #+y in the -T
-                time_diff = abs(i - time)
-                if board[univ][i] != ' ' and y + time_diff <= 7:
-                    if board[univ][i][y + time_diff][x].color == self.color:
-                        break
-                    elif board[univ][i][y + time_diff][x].color != self.color:
-                        moves.append(f"U{univ}T{i}{x}{y + time_diff}")
-                        break
-                    else:
-                        moves.append(f"U{univ}T{i}{x}{y + time_diff}")
-                        continue
-            
-            for i in range(time - 1, -1, -1): #-y in the -T
-                time_diff = abs(i - time)
-                if board[univ][i] != ' ' and y - time_diff >= 0:
-                    if board[univ][i][y - time_diff][x].color == self.color:
-                        break
-                    elif board[univ][i][y - time_diff][x].color != self.color:
-                        moves.append(f"U{univ}T{i}{x}{y - time_diff}")
-                        break
-                    else:
-                        moves.append(f"U{univ}T{i}{x}{y - time_diff}")
-                        continue
-            
-            for i in range(time - 1, -1, -1): #+x in the -T
-                time_diff = abs(i - time)
-                if board[univ][i] != ' ' and x - time_diff <= 7:
-                    if board[univ][i][y][x + time_diff].color == self.color:
-                        break
-                    elif board[uinv][i][y][x + time_diff].color != self.color:
-                        moves.append(f"U{univ}T{i}{x + time_diff}{y}")
-                        break
-                    else:
-                        moves.append(f"U{univ}T{i}{x + time_diff}{y}")
-                        continue
-
-            for i in range(time - 1, -1, -1): #-x in the -T
-                time_diff = abs(i - time)
-                if board[univ][i] != ' ' and x - time_diff >= 0:
-                    if board[univ][i][y][x - time_diff].color == self.color:
-                        break
-                    elif board[uinv][i][y][x - time_diff].color != self.color:
-                        moves.append(f"U{univ}T{i}{x - time_diff}{y}")
-                        break
-                    else:
-                        moves.append(f"U{univ}T{i}{x - time_diff}{y}")
-                        continue
+                        moves.append(f"U{u}T{time + 1}{rank[i]}{j + 1}")
+                        #input(f'x={i}, y={j}')
+                        i += (1 * k[2])
+                        j += (1 * k[3])
+                        u += (1 * k[4])
 
         return moves
 
@@ -357,7 +250,6 @@ def movePiece(board, m):
 
         return [new_univ, new_time]
 
-
 current_board = [
     [Piece('R', 'B'),Piece('N', 'B'),Piece('B', 'B'),Piece('Q', 'B'),Piece('K', 'B'),Piece('B', 'B'),Piece('N', 'B'),Piece('R', 'B')],
     [Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B'),Piece('P', 'B')],
@@ -368,9 +260,26 @@ current_board = [
     [Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W'),Piece('P', 'W')],
     [Piece('R', 'W'),Piece('N', 'W'),Piece('B', 'W'),Piece('Q', 'W'),Piece('K', 'W'),Piece('B', 'W'),Piece('N', 'W'),Piece('R', 'W')],
 ]
+
+test_board = [
+    [' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',Piece('P', 'B'),' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',Piece('B', 'W'),' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' '],
+]
+
+#Test board--------
+#current_board = test_board
+#------------------
+
 board_array = [
     []
 ]
+
 
 board_array[0].append(current_board)
 
@@ -424,10 +333,14 @@ while(1):
     elif move[0:4] == 'view':
         view_board(int(move[5]), int(move[7]))
     else:
+        move2 = ''
+        for i in range(6, 12):
+            move2 += move[i]
         univ, time, x, y, new_univ, new_time, new_x, new_y = parse_move(move)
+        print('move2:',move2)
         print(board_array[univ][time][y][x].getMovements(board_array, move))
         if (board_array[univ][time][y][x] == ' ' or
-             move not in board_array[univ][time][y][x].getMovements(board_array, move)): # Check if legal move
+             move2 not in board_array[univ][time][y][x].getMovements(board_array, move)): # Check if legal move
             print("Illegal move!")
         else:
             new_coords = movePiece(board_array, move)
