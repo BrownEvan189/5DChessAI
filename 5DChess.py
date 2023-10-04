@@ -25,6 +25,76 @@ class Piece():
     def getMovements(self, board, m): # for each piece, add legal movements to 'move' list
         univ, time, x, y, new_univ, new_time, new_x, new_y = parse_move(m)
         Y_OFFSET = 1
+        n, ne, e, se, s, sw, w, nw = [True for i in range(8)]
+            
+        def queen_check(utboard, x, y, i, n, nw, w, sw, s, se, e, ne):
+            qm = []
+
+            if w and x - i > -1:
+                if utboard[y][x - i] == ' ':
+                    qm.append((x - i, y))
+                elif utboard[y][x - i].color == ('W' if self.color == 'B' else 'B'):
+                    qm.append((x - i, y))
+                    w = False
+                else:
+                    w = False
+            if e and x + i < 8:
+                if utboard[y][x + i] == ' ':
+                    qm.append((x + i, y))
+                elif utboard[y][x + i].color == ('W' if self.color == 'B' else 'B'):
+                    qm.append((x + i, y))
+                    e = False
+                else:
+                    e = False
+            if n and y - i > -1:
+                if utboard[y - i][x] == ' ':
+                    qm.append((x, y - i))
+                elif utboard[y - i][x].color == ('W' if self.color == 'B' else 'B'):
+                    qm.append((x, y - i))
+                    n = False
+                else:
+                    n = False
+            if s and y + i < 8:
+                if utboard[y + i][x] == ' ':
+                    qm.append((x, y + i))
+                elif utboard[y + i][x].color == ('W' if self.color == 'B' else 'B'):
+                    qm.append((x, y + i))
+                    s = False
+                else:
+                    s = False
+            if nw and y - i > -1 and x - i > -1:
+                if utboard[y - i][x - i] == ' ':
+                    qm.append((x - i, y - i))
+                elif utboard[y - i][x - i].color == ('W' if self.color == 'B' else 'B'):
+                    qm.append((x - i, y - i))
+                    nw = False
+                else:
+                    nw = False
+            if ne and y - i > -1 and x + i < 8:
+                if utboard[y - i][x + i] == ' ':
+                    qm.append((x + i, y - i))
+                elif utboard[y - i][x + i].color == ('W' if self.color == 'B' else 'B'):
+                    qm.append((x + i, y - i))
+                    ne = False
+                else:
+                    ne = False
+            if sw and y + i < 8 and x - i > -1:
+                if utboard[y + i][x - i] == ' ':
+                    qm.append((x - i, y + i))
+                elif utboard[y + i][x - i].color == ('W' if self.color == 'B' else 'B'):
+                    qm.append((x - i, y + i))
+                    sw = False
+                else:
+                    sw = False
+            if se and y + i < 8 and x + i < 8:
+                if utboard[y + i][x + i] == ' ':
+                    qm.append((x + i, y + i))
+                elif utboard[y + i][x + i].color == ('W' if self.color == 'B' else 'B'):
+                    qm.append((x + i, y + i))
+                    se = False
+                else:
+                    se = False
+            return qm
 
         moves = []
 
@@ -158,6 +228,146 @@ class Piece():
                                             (board[univ + i][time + j][y - delta_y][x + k] == ' ' or
                                             board[univ + i][time + j][y - delta_y][x + k].color == ('W' if self.color == 'B' else 'B'))):
                                         moves.append(f"U{univ + i}T{time + j}{rank[x + k]}{y - delta_y + Y_OFFSET}")
+        
+        elif self.name == 'Q':
+            n, ne, e, se, s, sw, w, nw = [True for i in range(8)]
+
+            for i in range(1, max(x + 1, y + 1)):
+                if x - i > -1 and w:
+                    if board[univ][time][y][x - i] == ' ':
+                        moves.append(f"U{univ}T{time + 1}{rank[x - i]}{y + Y_OFFSET}")
+                    elif board[univ][time][y][x - i].color == ('W' if self.color == 'B' else 'B'):
+                        moves.append(f"U{univ}T{time + 1}{rank[x - i]}{y + Y_OFFSET}")
+                        w = False
+                    else:
+                        w = False
+
+                if y - i > -1 and n:
+                    if board[univ][time][y - i][x] == ' ':
+                        moves.append(f"U{univ}T{time + 1}{rank[x]}{y - i + Y_OFFSET}")
+                    elif board[univ][time][y - i][x].color == ('W' if self.color == 'B' else 'B'):
+                        moves.append(f"U{univ}T{time + 1}{rank[x]}{y - i + Y_OFFSET}")
+                        n = False
+                    else:
+                        n = False
+
+                if x - i > -1 and y - i > -1 and nw:
+                    if board[univ][time][y - i][x - i] == ' ':
+                        moves.append(f"U{univ}T{time + 1}{rank[x - i]}{y - i + Y_OFFSET}")
+                    elif board[univ][time][y - i][x - i].color == ('W' if self.color == 'B' else 'B'):
+                        moves.append(f"U{univ}T{time + 1}{rank[x - i]}{y - i + Y_OFFSET}")
+                        nw = False
+                    else:
+                        nw = False
+                if x - i > -1 and y + i < 8 and sw:
+                    if board[univ][time][y + i][x - i] == ' ':
+                        moves.append(f"U{univ}T{time + 1}{rank[x - i]}{y + i + Y_OFFSET}")
+                    elif board[univ][time][y + i][x - i].color == ('W' if self.color == 'B' else 'B'):
+                        moves.append(f"U{univ}T{time + 1}{rank[x - i]}{y + i + Y_OFFSET}")
+                        sw = False
+                    else:
+                        sw = False
+
+            for i in range(1, max(8 - x, 8 - y)):
+                if x + i < 8 and e:
+                    if board[univ][time][y][x + i] == ' ':
+                        moves.append(f"U{univ}T{time + 1}{rank[x + i]}{y + Y_OFFSET}")
+                    elif board[univ][time][y][x + i].color == ('W' if self.color == 'B' else 'B'):
+                        moves.append(f"U{univ}T{time + 1}{rank[x + i]}{y + Y_OFFSET}")
+                        e = False
+                    else:
+                        e = False
+
+                if y + i < 8 and s:
+                    if board[univ][time][y + i][x] == ' ':
+                        moves.append(f"U{univ}T{time + 1}{rank[x]}{y + i + Y_OFFSET}")
+                    elif board[univ][time][y + i][x].color == ('W' if self.color == 'B' else 'B'):
+                        moves.append(f"U{univ}T{time + 1}{rank[x]}{y + i + Y_OFFSET}")
+                        s = False
+                    else:
+                        s = False
+
+                if x + i < 8 and y - i > -1 and ne:
+                    if board[univ][time][y - i][x + i] == ' ':
+                        moves.append(f"U{univ}T{time + 1}{rank[x + i]}{y - i + Y_OFFSET}")
+                    elif board[univ][time][y - i][x + i].color == ('W' if self.color == 'B' else 'B'):
+                        moves.append(f"U{univ}T{time + 1}{rank[x + i]}{y - i + Y_OFFSET}")
+                        ne = False
+                    else:
+                        ne = False
+                if x + i < 8 and y + i < 8 and se:
+                    if board[univ][time][y + i][x + i] == ' ':
+                        moves.append(f"U{univ}T{time + 1}{rank[x + i]}{y + i + Y_OFFSET}")
+                    elif board[univ][time][y + i][x + i].color == ('W' if self.color == 'B' else 'B'):
+                        moves.append(f"U{univ}T{time + 1}{rank[x + i]}{y + i + Y_OFFSET}")
+                        se = False
+                    else:
+                        se = False
+
+            n, ne, e, se, s, sw, w, nw = [True for i in range(8)]
+            for i in range(1, univ + 1):
+                if len(board[univ - i]) > time and board[univ - i][time][0] != ' ':
+                    qc = queen_check(board[univ - i][time], x, y, i, n, ne, e, se, s, sw, w, nw)
+                    for qcx, qcy in qc:
+                        moves.append(f"U{univ - i}T{time}{rank[qcx]}{qcy + Y_OFFSET}")
+                        
+            n, ne, e, se, s, sw, w, nw = [True for i in range(8)]
+            for i in range(1, len(board) - univ):
+                if len(board[univ + i]) > time and board[univ + i][time][0] != ' ':
+                    qc = queen_check(board[univ + i][time], x, y, i, n, ne, e, se, s, sw, w, nw)
+                    for qcx, qcy in qc:
+                        moves.append(f"U{univ + i}T{time}{rank[qcx]}{qcy + Y_OFFSET}")
+                        
+            n, ne, e, se, s, sw, w, nw = [True for i in range(8)]
+            for i in range(2, time + 1, 2):
+                if board[univ][time - int(i / 2)][0] != ' ':
+                    qc = queen_check(board[univ][time - i], x, y, i, n, ne, e, se, s, sw, w, nw)
+                    print(qc)
+                    for qcx, qcy in qc:
+                        moves.append(f"U{univ}T{time - i}{rank[qcx]}{qcy + Y_OFFSET}")
+                        
+            n, ne, e, se, s, sw, w, nw = [True for i in range(8)]
+            for i in range(1, max(univ + 1, int(time / 2) + 1)):
+                if univ - i > -1 and time - (i * 2) > -1 and len(board[univ - i]) > time - (i * 2) and board[univ - i][time - (i * 2)][0] != ' ':
+                    qc = queen_check(board[univ - i][time - (i * 2)], x, y, i, n, ne, e, se, s, sw, w, nw)
+                    for qcx, qcy in qc:
+                        moves.append(f"U{univ - i}T{time - (i * 2)}{rank[qcx]}{qcy + Y_OFFSET}")
+                        
+            n, ne, e, se, s, sw, w, nw = [True for i in range(8)]
+            for i in range(1, max(len(board) - univ, int(time / 2) + 1)):
+                if univ + i < len(board) and time - (i * 2) > -1 and len(board[univ + i]) > time - (i * 2) and board[univ + i][time - (i * 2)][0] != ' ':
+                    qc = queen_check(board[univ + i][time - (i * 2)], x, y, i, n, ne, e, se, s, sw, w, nw)
+                    for qcx, qcy in qc:
+                        moves.append(f"U{univ + i}T{time - (i * 2)}{rank[qcx]}{qcy + Y_OFFSET}")
+                        
+            n, ne, e, se, s, sw, w, nw = [True for i in range(8)]
+            for i in range(1, len(board)):
+                if univ - i > -1:
+                    if len(board[univ - i]) > time + (i * 2) and board[univ - i][time + (i * 2)][0] != ' ':
+                        qc = queen_check(board[univ - i][time + (i * 2)], x, y, i, n, ne, e, se, s, sw, w, nw)
+                        for qcx, qcy in qc:
+                            moves.append(f"U{univ - i}T{time + (i * 2)}{rank[qcx]}{qcy + Y_OFFSET}")
+                else:
+                    break
+                
+            n, ne, e, se, s, sw, w, nw = [True for i in range(8)]
+            for i in range(1, len(board)):
+                if univ + i < len(board):
+                    if len(board[univ + i]) > time + (i * 2) and board[univ + i][time + (i * 2)][0] != ' ':
+                        qc = queen_check(board[univ + i][time + (i * 2)], x, y, i, n, ne, e, se, s, sw, w, nw)
+                        for qcx, qcy in qc:
+                            moves.append(f"U{univ + i}T{time + (i * 2)}{rank[qcx]}{qcy + Y_OFFSET}")
+                else:
+                    break
+        
+        if self.name == "K":
+
+            for i in range(-1, 2):
+                for j in range(-2, 3, 2):
+                    if univ + i > -1 and time + j > -1 and univ + i < len(board) and len(board[univ + i]) > time + j and board[univ + i][time + j][0] != ' ':
+                        kc = queen_check(board[univ + i][time + j], x, y, 1, True, True, True, True, True, True, True, True)
+                        for kcx, kcy in kc:
+                            moves.append(f"U{univ + i}T{time + j + (1 if j == 0 else 0)}{rank[kcx]}{kcy + Y_OFFSET}")
         
         for i in range(len(moves)): moves[i] = m[0:6] + moves[i]
         return moves
