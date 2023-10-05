@@ -175,10 +175,11 @@ class Piece():
                     else:
                         moves.append(f"U{univ}T{time + 1}{rank[i]}{j + 1}")
                         #input(f'x={i}, y={j}')
-                        i += (1 * k[2])
-                        j += (1 * k[3])
+                    i += (1 * k[2])
+                    j += (1 * k[3])
             
-            #Bishop moving across universes biship_array = [x-bound, y-bound, x-inc, y-inc, univ-direction, univ-bound] -2 means null
+            
+            #Bishop moving across universes bishop_array = [x-bound, y-bound, x-inc, y-inc, univ-direction, univ-bound] -2 means null
             bishop_array = [[8, -2, 1, 0, 1, len(board)], [8, -2, 1, 0, -1, -1], #Positive x dir
                             [-1, -2, -1, 0, 1, len(board)], [-1, -2, -1, 0, -1, -1], #Negative x dir
                             [-2, 8, 0, 1, 1, len(board)], [-2, 8, 0, 1, -1, -1], #Positive y dir
@@ -187,18 +188,65 @@ class Piece():
                 i = x + k[2]
                 j = y + k[3]
                 u = univ + k[4]
-                while (i != k[0] and j != k[1] and u > 0 and u != k[5]):
+                while (i != k[0] and j != k[1] and u >= 0 and u != k[5]):
                     if board[u][time][j][i] != ' ':
                         if board[univ][time][j][i].color != self.color:
-                            moves.append(f"U{u}T{time + 1}{rank[i]}{j + 1}")
+                            moves.append(f"U{u}T{time}{rank[i]}{j + 1}")
+                            input(f"U:{u}, U:{time}")
                             #input(f'x={i}, y={j}')
                         break
                     else:
-                        moves.append(f"U{u}T{time + 1}{rank[i]}{j + 1}")
+                        moves.append(f"U{u}T{time}{rank[i]}{j + 1}")
                         #input(f'x={i}, y={j}')
-                        i += (1 * k[2])
-                        j += (1 * k[3])
-                        u += (1 * k[4])
+                        input(f"U:{u}, U:{time}")
+                    i += (1 * k[2])
+                    j += (1 * k[3])
+                    u += (1 * k[4])
+            
+            #Bishop travelling back in time - bishop_array = [x-bound, y-bound, x-inc, y-inc, -1, 0]
+            bishop_array = [[8, -2, 1, 0], [-1, -2, -1, 0], [-2, 8, 0, 1], [-2, -1, 0, -1]] 
+            for k in bishop_array:
+                i = x + k[2]
+                j = y + k[3]
+                t = time - 2
+                while (i != k[0] and j != k[1] and t >= 0):
+                    if board[univ][t] != ' ':
+                        if board[u][time][j][i] != ' ':
+                            if board[univ][time][j][i].color != self.color:
+                                moves.append(f"U{univ}T{t}{rank[i]}{j + 1}")
+                                input(f"U:{univ}, T:{t}")
+                                #input(f'x={i}, y={j}')
+                            break
+                        else:
+                            moves.append(f"U{univ}T{t}{rank[i]}{j + 1}")
+                            #input(f'x={i}, y={j}')
+                            input(f"U:{univ}, T:{t}")
+                        i += k[2]
+                        j += k[3]
+                        t -= 2
+
+            #Bishop travelling across time and universes - bishop_array = [u-inc, t-inc]
+            input('here now')
+            bishop_array = [[1, 2], [-1, 2], [1, -2], [-1, -2]]
+            for k in bishop_array:
+                u = univ + k[0]
+                t = time + k[1]
+                #if u >= 0 and t >= 0:
+                input('here')
+                while (u >= 0 and u <= len(board) and t >= 0 and t <= len(board[u])):
+                    input('here!!!')
+                    if board[u][t] != ' ':
+                        if board[u][t][y][x] != ' ':
+                            if board[univ][time][y][x].color != self.color:
+                                moves.append(f"U{u}T{t}{rank[x]}{y}")
+                                #input(f'x={i}, y={j}')
+                            break
+                        else:
+                            moves.append(f"U{u}T{t}{rank[x]}{y}")
+                            #input(f'x={i}, y={j}')
+                        u += k[0]
+                        t += k[1]
+
 
         return moves
 
