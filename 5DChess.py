@@ -229,6 +229,97 @@ class Piece():
                                             board[univ + i][time + j][y - delta_y][x + k].color == ('W' if self.color == 'B' else 'B'))):
                                         moves.append(f"U{univ + i}T{time + j}{rank[x + k]}{y - delta_y + Y_OFFSET}")
         
+        elif self.name == 'B':
+            #Regular moves for a bishop
+            
+            #input('1')
+            bishop_array = [[8, -1, 1, -1], [8, 8, 1, 1], [-1, 8, -1, 1], [-1, -1, -1, -1]]
+            for k in bishop_array:
+                i = x + k[2]
+                j = y + k[3]
+                while (i != k[0] and j != k[1]):
+                    if board[univ][time][j][i] != ' ':
+                        if board[univ][time][j][i].color != self.color:
+                            moves.append(f"U{univ}T{time + 1}{rank[i]}{j + 1}")
+                            #input(f'x={i}, y={j}')
+                        break
+                    else:
+                        moves.append(f"U{univ}T{time + 1}{rank[i]}{j + 1}")
+                        #input(f'x={i}, y={j}')
+                    i += k[2]
+                    j += k[3]
+            
+            #input('2')
+            #Bishop moving across universes bishop_array = [x-bound, y-bound, x-inc, y-inc, univ-direction, univ-bound] -2 means null
+            bishop_array = [[8, -2, 1, 0, 1, len(board)], [8, -2, 1, 0, -1, -1], #Positive x dir
+                            [-1, -2, -1, 0, 1, len(board)], [-1, -2, -1, 0, -1, -1], #Negative x dir
+                            [-2, 8, 0, 1, 1, len(board)], [-2, 8, 0, 1, -1, -1], #Positive y dir
+                            [-2, -1, 0, -1, 1, len(board)], [-2, -1, 0, -1, -1, -1]] #Negative y dir
+            for k in bishop_array:
+                i = x + k[2]
+                j = y + k[3]
+                u = univ + k[4]
+                while (i != k[0] and j != k[1] and u != k[5]):
+                    if len(board[u]) >= time + 1:
+                        if board[u][time][j][i] != ' ':
+                            if board[univ][time][j][i].color != self.color:
+                                moves.append(f"U{u}T{time}{rank[i]}{j + 1}")
+                                #input(f"U:{u}, U:{time}")
+                                #input(f'x={i}, y={j}')
+                            break
+                        else:
+                            moves.append(f"U{u}T{time}{rank[i]}{j + 1}")
+                            #input(f'x={i}, y={j}')
+                            #input(f"U:{u}, U:{time}")
+                        i += k[2]
+                        j += k[3]
+                        u += k[4]
+                    else:
+                        break
+            
+            #input('3')
+            #Bishop travelling back in time - bishop_array = [x-bound, y-bound, x-inc, y-inc, -1, 0]
+            bishop_array = [[8, -2, 1, 0], [-1, -2, -1, 0], [-2, 8, 0, 1], [-2, -1, 0, -1]] 
+            for k in bishop_array:
+                i = x + k[2]
+                j = y + k[3]
+                t = time - 2
+                while (i != k[0] and j != k[1] and t >= 0):
+                    if board[univ][t] != ' ':
+                        if board[univ][t][j][i] != ' ':
+                            if board[univ][t][j][i].color != self.color:
+                                moves.append(f"U{univ}T{t}{rank[i]}{j + 1}")
+                            break
+                        else:
+                            moves.append(f"U{univ}T{t}{rank[i]}{j + 1}")
+                        i += k[2]
+                        j += k[3]
+                        t -= 2
+
+            #Bishop travelling across time and universes - bishop_array = [u-inc, t-inc]
+            #input('4')
+            bishop_array = [[1, 2], [-1, 2], [1, -2], [-1, -2]]
+            for k in bishop_array:
+                u = univ + k[0]
+                t = time + k[1]
+                #if u >= 0 and t >= 0:
+                #input(k)
+                while (u >= 0 and u <= len(board) - 1 and t >= 0 and t <= len(board[u]) - 1):
+                    if len(board[u]) >= t + 1:
+                        if board[u][t] != ' ':
+                            if board[u][t][y][x] != ' ':
+                                if board[univ][time][y][x].color != self.color:
+                                    moves.append(f"U{u}T{t}{rank[x]}{y + 1}")
+                                    #input(f'U={u}, T={t}')
+                                break
+                            else:
+                                moves.append(f"U{u}T{t}{rank[x]}{y + 1}")
+                                #input(f'U={u}, T={t}')
+                            u += k[0]
+                            t += k[1]
+                        else:
+                            break
+
         elif self.name == 'Q':
             n, ne, e, se, s, sw, w, nw = [True for i in range(8)]
 
