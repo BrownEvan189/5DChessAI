@@ -1,79 +1,305 @@
-import torch
-from torch import nn
+import logging
+import time
+
 import numpy as np
-import pygad
-from pygad import torchga
+import matplotlib.pyplot as plt
 
-# Get cpu, gpu or mps device for training.
-device = (
-    "cuda"
-    if torch.cuda.is_available()
-    else "mps"
-    if torch.backends.mps.is_available()
-    else "cpu"
-)
-print(f"Using {device} device")
+import tensorflow_datasets as tfds
+import tensorflow as tf
 
-# Define model
-model = nn.Sequential(
-            nn.Linear(3, 8),
-            nn.ReLU(),
-            nn.Linear(8, 5)
-        ).to(device)
 
-torch_ga = torchga.TorchGA(model=model, num_solutions=10)
 
-# Data inputs
-data_inputs = torch.tensor([[1.0, 2.0, 3.0]])#, [3.0, 1.0, 7.0], [2.0, 4.0, 3.0], [7.0, 5.0, 0.0], [3.0, 5.0, 2.0]])
+class BaseAttention(tf.keras.layers.Layer):
+  def __init__(self, **kwargs):
+    super().__init__()
+    self.mha = tf.keras.layers.MultiHeadAttention(**kwargs)
+    self.layernorm = tf.keras.layers.LayerNormalization()
+    self.add = tf.keras.layers.Add()
 
-# Data outputs
-data_outputs = torch.tensor([[0.4, 0.1, 0.3, 0.15, 0.05]])#, [0.2, 0.35, 0.25, 0.13, 0.07], 
-#[0.6, 0.19, 0.01, 0.12, 0.08], [0.17, 0.18, 0.21, 0.24, 0.2], [0.5, 0.25, 0.1, 0.05, 0.1]])
+class CrossAttention(BaseAttention):
+  def call(self, x, context):
+    attn_output, attn_scores = self.mha(
+        query=x,
+        key=context,
+        value=context,
+        return_attention_scores=True)
+   
+    # Cache the attention scores for plotting later.
+    self.last_attn_scores = attn_scores
 
-loss_function = torch.nn.KLDivLoss( reduction='batchmean')
+    x = self.add([x, attn_output])
+    x = self.layernorm(x)
 
-def fitness_func(ga_instance, solution, sol_idx):
-    global data_inputs, data_outputs, torch_ga, model, loss_function
+    return x
 
-    predictions = torchga.predict(model=model,
-                                        solution=solution,
-                                        data=data_inputs)
+class GlobalSelfAttention(BaseAttention):
+  def call(self, x):
+    attn_output = self.mha(
+        query=x,
+        value=x,
+        key=x)
+    x = self.add([x, attn_output])
+    x = self.layernorm(x)
+    return x
 
-    solution_fitness = 1.0 / (loss_function(predictions, data_outputs).detach().numpy() + 0.00000001)
+class CausalSelfAttention(BaseAttention):
+  def call(self, x):
+    attn_output = self.mha(
+        query=x,
+        value=x,
+        key=x,
+        use_causal_mask = True)
+    x = self.add([x, attn_output])
+    x = self.layernorm(x)
+    return x
 
-    return solution_fitness
 
-def on_generation(ga_instance):
-    print(f"Generation = {ga_instance.generations_completed}")
 
-num_generations = 10000 # Number of generations.
-num_parents_mating = 2 # Number of solutions to be selected as parents in the mating pool.
-initial_population = torch_ga.population_weights # Initial population of network weights
 
-ga_instance = pygad.GA(num_generations=num_generations,
-                       num_parents_mating=num_parents_mating,
-                       initial_population=initial_population,
-                       fitness_func=fitness_func,
-                       on_generation=on_generation,
-                       mutation_type="adaptive",
-                       mutation_percent_genes=[30, 10])
+class FeedForward(tf.keras.layers.Layer):
+  def __init__(self, d_model, dff, dropout_rate=0.1):
+    super().__init__()
+    self.seq = tf.keras.Sequential([
+      tf.keras.layers.Dense(dff, activation='relu'),
+      tf.keras.layers.Dense(d_model),
+      tf.keras.layers.Dropout(dropout_rate)
+    ])
+    self.add = tf.keras.layers.Add()
+    self.layer_norm = tf.keras.layers.LayerNormalization()
 
-ga_instance.run()
+  def call(self, x):
+    x = self.add([x, self.seq(x)])
+    x = self.layer_norm(x) 
+    return x
 
-ga_instance.plot_fitness(title="PyGAD & PyTorch - Iteration vs. Fitness", linewidth=4)
 
-# Returning the details of the best solution.
-solution, solution_fitness, solution_idx = ga_instance.best_solution()
-print(f"Fitness value of the best solution = {solution_fitness}")
-print(f"Index of the best solution : {solution_idx}")
 
-predictions = pygad.torchga.predict(model=model,
-                                    solution=solution,
-                                    data=data_inputs)
-print("Predictions : \n", predictions.detach().numpy())
 
-# torch.save(model.state_dict(), "model.pth")
-# print("Saved PyTorch Model State to model.pth")
 
-# model = NeuralNetwork().to(device)
-# model.load_state_dict(torch.load("model.pth"))
+
+
+class EncoderLayer(tf.keras.layers.Layer):
+  def __init__(self,*, d_model, num_heads, dff, dropout_rate=0.1):
+    super().__init__()
+
+    self.self_attention = GlobalSelfAttention(
+        num_heads=num_heads,
+        key_dim=d_model,
+        dropout=dropout_rate)
+
+    self.ffn = FeedForward(d_model, dff)
+
+  def call(self, x):
+    x = self.self_attention(x)
+    x = self.ffn(x)
+    return x
+
+class Encoder(tf.keras.layers.Layer):
+  def __init__(self, *, num_layers, d_model, num_heads,
+               dff, dropout_rate=0.1):
+    super().__init__()
+
+    self.d_model = d_model
+    self.num_layers = num_layers
+
+    self.enc_layers = [
+        EncoderLayer(d_model=d_model,
+                     num_heads=num_heads,
+                     dff=dff,
+                     dropout_rate=dropout_rate)
+        for _ in range(num_layers)]
+    self.dropout = tf.keras.layers.Dropout(dropout_rate)
+
+  def call(self, x):
+    # `x` is token-IDs shape: (batch, seq_len)
+    
+    # Add dropout.
+    x = self.dropout(x)
+
+    for i in range(self.num_layers):
+      x = self.enc_layers[i](x)
+
+    return x  # Shape `(batch_size, seq_len, d_model)`.
+
+
+
+
+
+class DecoderLayer(tf.keras.layers.Layer):
+  def __init__(self,
+               *,
+               d_model,
+               num_heads,
+               dff,
+               dropout_rate=0.1):
+    super(DecoderLayer, self).__init__()
+
+    self.causal_self_attention = CausalSelfAttention(
+        num_heads=num_heads,
+        key_dim=d_model,
+        dropout=dropout_rate)
+    
+    self.cross_attention = CrossAttention(
+        num_heads=num_heads,
+        key_dim=d_model,
+        dropout=dropout_rate)
+
+    self.ffn = FeedForward(d_model, dff)
+
+  def call(self, x, context):
+    x = self.causal_self_attention(x=x)
+    x = self.cross_attention(x=x, context=context)
+
+    # Cache the last attention scores for plotting later
+    self.last_attn_scores = self.cross_attention.last_attn_scores
+
+    x = self.ffn(x)  # Shape `(batch_size, seq_len, d_model)`.
+    return x
+
+class Decoder(tf.keras.layers.Layer):
+  def __init__(self, *, num_layers, d_model, num_heads, dff,
+               dropout_rate=0.1):
+    super(Decoder, self).__init__()
+
+    self.d_model = d_model
+    self.num_layers = num_layers
+
+    self.dropout = tf.keras.layers.Dropout(dropout_rate)
+    self.dec_layers = [
+        DecoderLayer(d_model=d_model, num_heads=num_heads,
+                     dff=dff, dropout_rate=dropout_rate)
+        for _ in range(num_layers)]
+
+    self.last_attn_scores = None
+
+  def call(self, x, context):
+    # `x` is token-IDs shape (batch, target_seq_len)
+
+    x = self.dropout(x)
+
+    for i in range(self.num_layers):
+      x  = self.dec_layers[i](x, context)
+
+    self.last_attn_scores = self.dec_layers[-1].last_attn_scores
+
+    # The shape of x is (batch_size, target_seq_len, d_model).
+    return x
+  
+
+
+
+
+
+class Transformer(tf.keras.Model):
+  def __init__(self, *, num_layers, d_model, num_heads, dff, output_size, dropout_rate=0.1):
+    super().__init__()
+    self.encoder = Encoder(num_layers=num_layers, d_model=d_model,
+                           num_heads=num_heads, dff=dff,
+                           dropout_rate=dropout_rate)
+
+    self.decoder = Decoder(num_layers=num_layers, d_model=d_model,
+                           num_heads=num_heads, dff=dff,
+                           dropout_rate=dropout_rate)
+
+    self.final_layer = tf.keras.layers.Dense(output_size)
+
+  def call(self, inputs):
+    # To use a Keras model with `.fit` you must pass all your inputs in the
+    # first argument.
+    context, x  = inputs
+
+    context = self.encoder(context)  # (batch_size, context_len, d_model)
+
+    x = self.decoder(x, context)  # (batch_size, target_len, d_model)
+
+    # Final linear layer output.
+    logits = self.final_layer(x)  # (batch_size, target_len, target_vocab_size)
+
+    try:
+      # Drop the keras mask, so it doesn't scale the losses/metrics.
+      # b/250038731
+      del logits._keras_mask
+    except AttributeError:
+      pass
+
+    # Return the final output and the attention weights.
+    return logits
+
+
+
+
+
+
+class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
+  def __init__(self, d_model, warmup_steps=4000):
+    super().__init__()
+
+    self.d_model = d_model
+    self.d_model = tf.cast(self.d_model, tf.float32)
+
+    self.warmup_steps = warmup_steps
+
+  def __call__(self, step):
+    step = tf.cast(step, dtype=tf.float32)
+    arg1 = tf.math.rsqrt(step)
+    arg2 = step * (self.warmup_steps ** -1.5)
+
+    return tf.math.rsqrt(self.d_model) * tf.math.minimum(arg1, arg2)
+
+def masked_loss(label, pred):
+  mask = label != 0
+  loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
+    from_logits=True, reduction='none')
+  loss = loss_object(label, pred)
+
+  mask = tf.cast(mask, dtype=loss.dtype)
+  loss *= mask
+
+  loss = tf.reduce_sum(loss)/tf.reduce_sum(mask)
+  return loss
+
+
+
+
+def masked_accuracy(label, pred):
+  pred = tf.argmax(pred, axis=2)
+  label = tf.cast(label, pred.dtype)
+  match = label == pred
+
+  mask = label != 0
+
+  match = match & mask
+
+  match = tf.cast(match, dtype=tf.float32)
+  mask = tf.cast(mask, dtype=tf.float32)
+  return tf.reduce_sum(match)/tf.reduce_sum(mask)
+
+
+
+
+
+learning_rate = CustomSchedule(d_model=256)
+
+optimizer = tf.keras.optimizers.Adam(learning_rate, beta_1=0.9, beta_2=0.98,
+                                     epsilon=1e-9)
+
+transformer = Transformer(num_layers=4, d_model=256, dff=512, num_heads=8, output_size=256, dropout_rate=0.1)
+
+transformer((tf.constant([[[0.5 for i in range(256)]], [[0.25 for i in range(256)]]], dtype='float32'), tf.constant([[[0]], [[0]]], dtype='float32')))
+
+
+output = transformer((tf.constant([[[0.5 for i in range(256)]]], dtype='float32'), tf.constant([[[0]]], dtype='float32')))
+tf.print(output)
+
+test_data = (tf.constant([[[0.5 for i in range(256)]], [[0.25 for i in range(256)]]], dtype='float32'), tf.constant([[[0]], [[0]]], dtype='float32'))
+target_out = tf.constant([[[0.75 for i in range(256)]], [[0.11 for i in range(256)]]], dtype='float32')
+
+#test_data = (tf.constant([[[0.5 for i in range(256)]]], dtype='float32'), tf.constant([[[0]]], dtype='float32'))
+#target_out = tf.constant([[[0.75 for i in range(256)]]], dtype='float32')
+
+
+transformer.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer=optimizer)
+transformer.fit(x=test_data, y=target_out, epochs=200)
+
+output = transformer((tf.constant([[[0.5 for i in range(256)]]], dtype='float32'), tf.constant([[[0]]], dtype='float32')))
+tf.print(output)
