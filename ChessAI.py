@@ -1,13 +1,4 @@
-import logging
-import time
-
-import numpy as np
-import matplotlib.pyplot as plt
-
-import tensorflow_datasets as tfds
 import tensorflow as tf
-
-
 
 class BaseAttention(tf.keras.layers.Layer):
   def __init__(self, **kwargs):
@@ -23,7 +14,7 @@ class CrossAttention(BaseAttention):
         key=context,
         value=context,
         return_attention_scores=True)
-   
+
     # Cache the attention scores for plotting later.
     self.last_attn_scores = attn_scores
 
@@ -112,7 +103,7 @@ class Encoder(tf.keras.layers.Layer):
 
   def call(self, x):
     # `x` is token-IDs shape: (batch, seq_len)
-    
+
     # Add dropout.
     x = self.dropout(x)
 
@@ -138,7 +129,7 @@ class DecoderLayer(tf.keras.layers.Layer):
         num_heads=num_heads,
         key_dim=d_model,
         dropout=dropout_rate)
-    
+
     self.cross_attention = CrossAttention(
         num_heads=num_heads,
         key_dim=d_model,
@@ -184,7 +175,7 @@ class Decoder(tf.keras.layers.Layer):
 
     # The shape of x is (batch_size, target_seq_len, d_model).
     return x
-  
+
 
 
 
@@ -246,60 +237,34 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 
     return tf.math.rsqrt(self.d_model) * tf.math.minimum(arg1, arg2)
 
-def masked_loss(label, pred):
-  mask = label != 0
-  loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
-    from_logits=True, reduction='none')
-  loss = loss_object(label, pred)
-
-  mask = tf.cast(mask, dtype=loss.dtype)
-  loss *= mask
-
-  loss = tf.reduce_sum(loss)/tf.reduce_sum(mask)
-  return loss
 
 
-
-
-def masked_accuracy(label, pred):
-  pred = tf.argmax(pred, axis=2)
-  label = tf.cast(label, pred.dtype)
-  match = label == pred
-
-  mask = label != 0
-
-  match = match & mask
-
-  match = tf.cast(match, dtype=tf.float32)
-  mask = tf.cast(mask, dtype=tf.float32)
-  return tf.reduce_sum(match)/tf.reduce_sum(mask)
-
-
-
-
-
-learning_rate = CustomSchedule(d_model=256)
+learning_rate = CustomSchedule(d_model=16)
 
 optimizer = tf.keras.optimizers.Adam(learning_rate, beta_1=0.9, beta_2=0.98,
                                      epsilon=1e-9)
 
-transformer = Transformer(num_layers=4, d_model=256, dff=512, num_heads=8, output_size=256, dropout_rate=0.1)
+transformer = Transformer(num_layers=2, d_model=16, dff=32, num_heads=8, output_size=16, dropout_rate=0.1)
 
-transformer((tf.constant([[[0.5 for i in range(256)]], [[0.25 for i in range(256)]]], dtype='float32'), tf.constant([[[0]], [[0]]], dtype='float32')))
+transformer((tf.constant([[[0.5 for i in range(16)]], [[0.25 for i in range(16)]]], dtype='float32'), tf.constant([[[0]], [[0]]], dtype='float32')))
 
 
-output = transformer((tf.constant([[[0.5 for i in range(256)]]], dtype='float32'), tf.constant([[[0]]], dtype='float32')))
+output = transformer((tf.constant([[[0.5 for i in range(16)]]], dtype='float32'), tf.constant([[[0]]], dtype='float32')))
 tf.print(output)
 
-test_data = (tf.constant([[[0.5 for i in range(256)]], [[0.25 for i in range(256)]]], dtype='float32'), tf.constant([[[0]], [[0]]], dtype='float32'))
-target_out = tf.constant([[[0.75 for i in range(256)]], [[0.11 for i in range(256)]]], dtype='float32')
+test_data = (tf.constant([[[0.5 for i in range(16)]], [[0.25 for i in range(16)]]], dtype='float32'), tf.constant([[[0]], [[0]]], dtype='float32'))
+target_out = tf.constant([[[0.75 for i in range(16)]], [[0.11 for i in range(16)]]], dtype='float32')
 
-#test_data = (tf.constant([[[0.5 for i in range(256)]]], dtype='float32'), tf.constant([[[0]]], dtype='float32'))
-#target_out = tf.constant([[[0.75 for i in range(256)]]], dtype='float32')
+
+
 
 
 transformer.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer=optimizer)
-transformer.fit(x=test_data, y=target_out, epochs=200)
+transformer.fit(x=test_data, y=target_out, epochs=10000)
 
-output = transformer((tf.constant([[[0.5 for i in range(256)]]], dtype='float32'), tf.constant([[[0]]], dtype='float32')))
+
+
+
+
+output = transformer((tf.constant([[[0.5 for i in range(16)]], [[0.25 for i in range(16)]]], dtype='float32'), tf.constant([[[0]], [[0]]], dtype='float32')))
 tf.print(output)
