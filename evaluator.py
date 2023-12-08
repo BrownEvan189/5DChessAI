@@ -14,7 +14,7 @@ class CrossAttention(BaseAttention):
         key=context,
         value=context,
         return_attention_scores=True)
-
+   
     # Cache the attention scores for plotting later.
     self.last_attn_scores = attn_scores
 
@@ -103,7 +103,7 @@ class Encoder(tf.keras.layers.Layer):
 
   def call(self, x):
     # `x` is token-IDs shape: (batch, seq_len)
-
+    
     # Add dropout.
     x = self.dropout(x)
 
@@ -129,7 +129,7 @@ class DecoderLayer(tf.keras.layers.Layer):
         num_heads=num_heads,
         key_dim=d_model,
         dropout=dropout_rate)
-
+    
     self.cross_attention = CrossAttention(
         num_heads=num_heads,
         key_dim=d_model,
@@ -175,7 +175,7 @@ class Decoder(tf.keras.layers.Layer):
 
     # The shape of x is (batch_size, target_seq_len, d_model).
     return x
-
+  
 
 
 
@@ -217,34 +217,9 @@ class Transformer(tf.keras.Model):
     return logits
 
 
+optimizer = tf.keras.optimizers.Adam(weight_decay=1e-4)
 
-
-
-
-class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
-  def __init__(self, d_model, warmup_steps=4000):
-    super().__init__()
-
-    self.d_model = d_model
-    self.d_model = tf.cast(self.d_model, tf.float32)
-
-    self.warmup_steps = warmup_steps
-
-  def __call__(self, step):
-    step = tf.cast(step, dtype=tf.float32)
-    arg1 = tf.math.rsqrt(step)
-    arg2 = step * (self.warmup_steps ** -1.5)
-
-    return tf.math.rsqrt(self.d_model) * tf.math.minimum(arg1, arg2)
-
-
-
-learning_rate = CustomSchedule(d_model=16)
-
-optimizer = tf.keras.optimizers.Adam(learning_rate, beta_1=0.9, beta_2=0.98,
-                                     epsilon=1e-9)
-
-transformer = Transformer(num_layers=2, d_model=16, dff=32, num_heads=8, output_size=16, dropout_rate=0.1)
+transformer = Transformer(num_layers=2, d_model=16, dff=64, num_heads=8, output_size=16, dropout_rate=0.1)
 
 transformer((tf.constant([[[0.5 for i in range(16)]], [[0.25 for i in range(16)]]], dtype='float32'), tf.constant([[[0]], [[0]]], dtype='float32')))
 
@@ -252,15 +227,13 @@ transformer((tf.constant([[[0.5 for i in range(16)]], [[0.25 for i in range(16)]
 output = transformer((tf.constant([[[0.5 for i in range(16)]]], dtype='float32'), tf.constant([[[0]]], dtype='float32')))
 tf.print(output)
 
-test_data = (tf.constant([[[0.5 for i in range(16)]], [[0.25 for i in range(16)]]], dtype='float32'), tf.constant([[[0]], [[0]]], dtype='float32'))
-target_out = tf.constant([[[0.75 for i in range(16)]], [[0.11 for i in range(16)]]], dtype='float32')
-
-
+test_data = (tf.constant([[[0.5 for i in range(16)]], [[0.25 for i in range(16)]], [[0.33 for i in range(16)]], [[0.8 for i in range(16)]]], dtype='float32'), tf.constant([[[0]], [[0]], [[0]], [[0]]], dtype='float32'))
+target_out = tf.constant([[[0.75 for i in range(16)]], [[0.11 for i in range(16)]], [[0.8 for i in range(16)]], [[0.5 for i in range(16)]]], dtype='float32')
 
 
 
 transformer.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer=optimizer)
-transformer.fit(x=test_data, y=target_out, epochs=10000)
+transformer.fit(x=test_data, y=target_out, epochs=2500)
 
 
 
