@@ -57,24 +57,24 @@ class Selector(tf.keras.Model):
 selector = Selector(d_model=3, num_heads=8, dff=32, output_size=1)
 
 
-test_data = tf.constant([[[random.random() for i in range(3)] for j in range(100)]], dtype='float32')
-target_out = [[0.0] for j in range(24)]
+test_data = tf.constant([[[random.random() for i in range(3)] for j in range(60)]], dtype='float32')
+target_out = [[0.0] for j in range(10)]
 target_out.append([1.0])
-for j in range(12):
+for j in range(6):
     target_out.append([0.0])
 target_out.append([1.0])
-for j in range(45):
+for j in range(24):
     target_out.append([0.0])
 target_out.append([1.0])
-for j in range(16):
+for j in range(17):
     target_out.append([0.0])
 target_out = tf.constant([target_out], dtype="float32")
 
 
 optimizer = tf.keras.optimizers.Adam(weight_decay=1e-4)
 
-selector.compile(loss=tf.keras.losses.BinaryFocalCrossentropy(), optimizer=optimizer)
-selector.fit(x=test_data, y=target_out, epochs=50000)
+selector.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer=optimizer)
+selector.fit(x=test_data, y=target_out, epochs=10000)
 
 for x in selector(test_data):
   for y in x:
