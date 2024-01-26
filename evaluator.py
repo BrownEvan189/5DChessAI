@@ -1,4 +1,5 @@
 import tensorflow as tf
+from game import Game
 
 class BaseAttention(tf.keras.layers.Layer):
   def __init__(self, **kwargs):
@@ -216,28 +217,17 @@ class Transformer(tf.keras.Model):
     # Return the final output and the attention weights.
     return logits
 
+g = Game()
 
 optimizer = tf.keras.optimizers.Adam(weight_decay=1e-4)
 
-transformer = Transformer(num_layers=2, d_model=16, dff=64, num_heads=8, output_size=16, dropout_rate=0.1)
+transformer = Transformer(num_layers=4, d_model=5, dff=64, num_heads=1, output_size=1, dropout_rate=0.1)
 
-transformer((tf.constant([[[0.5 for i in range(16)]], [[0.25 for i in range(16)]]], dtype='float32'), tf.constant([[[0]], [[0]]], dtype='float32')))
-
-
-output = transformer((tf.constant([[[0.5 for i in range(16)]]], dtype='float32'), tf.constant([[[0]]], dtype='float32')))
-tf.print(output)
-
-test_data = (tf.constant([[[0.5 for i in range(16)]], [[0.25 for i in range(16)]], [[0.33 for i in range(16)]], [[0.8 for i in range(16)]]], dtype='float32'), tf.constant([[[0]], [[0]], [[0]], [[0]]], dtype='float32'))
-target_out = tf.constant([[[0.75 for i in range(16)]], [[0.11 for i in range(16)]], [[0.8 for i in range(16)]], [[0.5 for i in range(16)]]], dtype='float32')
-
-
+test_data = (tf.constant([g.get_board_state()], dtype='float32'), tf.constant([[[0]]], dtype='float32'))
+target_out = tf.constant([[[1]]])
 
 transformer.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer=optimizer)
 transformer.fit(x=test_data, y=target_out, epochs=2500)
 
-
-
-
-
-output = transformer((tf.constant([[[0.5 for i in range(16)]], [[0.25 for i in range(16)]]], dtype='float32'), tf.constant([[[0]], [[0]]], dtype='float32')))
+output = transformer((tf.constant([g.get_board_state()], dtype='float32'), tf.constant([[[0]]], dtype='float32')))
 tf.print(output)
