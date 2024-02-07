@@ -782,10 +782,6 @@ class Game():
 
         return new_coords
 
-    def get_board_state(self):
-        return [self.board_array, deepcopy(self.board_array), deepcopy(self.positions), deepcopy(self.attacks), 
-                deepcopy(self.attack_lines), deepcopy(self.kings), self.univ0, self.last_univ0, self.present]
-
     def get_pieces(self):
         result = []
 
